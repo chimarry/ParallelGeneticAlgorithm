@@ -119,6 +119,11 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ExpressionTree\MathExpressionNode.cs" />
+    <Compile Include="ExpressionTree\MathExpressionTree.cs" />
+    <Compile Include="ExpressionTree\Operator.cs" />
+    <Compile Include="GeneticAlgorithm\StohasticGenerator.cs" />
+    <Compile Include="GeneticAlgorithm\PopulationGenerator.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>

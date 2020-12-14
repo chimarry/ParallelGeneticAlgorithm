@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GeneticAlgorithm.ExpressionTree;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,6 +26,17 @@ namespace GeneticAlgorithm
         public MainPage()
         {
             this.InitializeComponent();
+            GeneticAlgorithm.PopulationGenerator populationGenerator = new GeneticAlgorithm.PopulationGenerator();
+            List<MathExpressionTree> expressions = populationGenerator.GeneratePopulation(3, new int[] { 10, 2, 14, 5, 7, 3 });
+            string finalExpression = "Expression: ";
+            foreach (var expression in expressions)
+            {
+                finalExpression += Environment.NewLine;
+                string newExpression = "";
+                expression.PrintInorder(expression.Root, ref newExpression);
+                finalExpression += newExpression;
+            }
+            ExpressionBlock.Text = finalExpression;
         }
     }
 }
