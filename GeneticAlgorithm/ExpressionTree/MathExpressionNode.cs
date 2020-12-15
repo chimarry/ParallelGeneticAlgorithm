@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace GeneticAlgorithm.ExpressionTree
 {
@@ -17,8 +16,24 @@ namespace GeneticAlgorithm.ExpressionTree
 
         protected int value;
 
+        public MathExpressionNode(int value) : this()
+        {
+            this.value = value;
+            LeftChild = null;
+            RightChild = null;
+        }
+
+        public MathExpressionNode()
+        {
+            Id = new Random().Next();
+        }
+
         public override string ToString()
-            => value.ToString();
+        {
+            if (Parent.LeftChild.Id == Id)
+                return " (" + value;
+            else return value + ") ";
+        }
 
         public virtual int GetValue() => value;
 
@@ -35,18 +50,6 @@ namespace GeneticAlgorithm.ExpressionTree
             hashCode = hashCode * -1521134295 + IsLeaf.GetHashCode();
             hashCode = hashCode * -1521134295 + value.GetHashCode();
             return hashCode;
-        }
-
-        public MathExpressionNode()
-        {
-            Id = new Random().Next();
-        }
-
-        public MathExpressionNode(int value)
-        {
-            this.value = value;
-            LeftChild = null;
-            RightChild = null;
         }
     }
 }

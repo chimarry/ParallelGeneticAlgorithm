@@ -46,11 +46,19 @@ namespace GeneticAlgorithm
             }
         }
 
-        public int GetRandomNumber()
+        public int NextRandom()
         {
             lock (randomGenerator)
             {
                 return randomGenerator.Next(2, operands.Length);
+            }
+        }
+
+        public double NextRandomDouble()
+        {
+            lock (randomGenerator)
+            {
+                return randomGenerator.NextDouble();
             }
         }
     }

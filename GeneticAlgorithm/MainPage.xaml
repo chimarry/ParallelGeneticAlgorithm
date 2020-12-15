@@ -8,7 +8,8 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid>
+    <StackPanel Orientation="Horizontal">
         <TextBlock x:Name="ExpressionBlock"></TextBlock>
-    </Grid>
+        <TextBlock x:Name="BestFitted"></TextBlock>
+    </StackPanel>
 </Page>

@@ -29,7 +29,7 @@ namespace GeneticAlgorithm
         private MathExpressionTree GenerateIndividual()
         {
             StohasticGenerator stohasticGenerator = new StohasticGenerator(operands);
-            int operandsCount = stohasticGenerator.GetRandomNumber();
+            int operandsCount = stohasticGenerator.NextRandom();
             List<MathExpressionNode> operatorsAndOperands = Enumerable.Range(0, 2 * operandsCount - 1)
                                                           .Select(x => x % 2 == 0 ? stohasticGenerator.GetRandomOperand() : stohasticGenerator.GetRandomOperator())
                                                           .ToList();
