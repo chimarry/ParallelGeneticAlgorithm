@@ -12,11 +12,6 @@ namespace GeneticAlgorithm.ExpressionTree
 
         public Func<int, int, int> CorrespondingFunction { get; }
 
-        public Operator()
-        {
-
-        }
-
         public Operator(Operation operation)
         {
             Operation = operation;

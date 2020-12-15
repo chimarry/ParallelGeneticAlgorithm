@@ -8,7 +8,9 @@ namespace GeneticAlgorithm
 {
     public class PopulationSelector
     {
-        private StohasticGenerator stohasticGenerator;
+        private const int eliteIndividualCount = 1;
+
+        private readonly StohasticGenerator stohasticGenerator;
         private readonly bool elitism;
         private readonly int result;
 
@@ -32,7 +34,7 @@ namespace GeneticAlgorithm
 
             if (elitism)
                 selectedIndividuals.Add(individualsWithFitnessRatio.First().individual);
-            individualsWithFitnessRatio = individualsWithFitnessRatio.Skip(1);
+            individualsWithFitnessRatio = individualsWithFitnessRatio.Skip(eliteIndividualCount);
 
             double randomProbability = stohasticGenerator.NextRandomDouble();
             foreach ((MathExpressionTree individual, int fitnessRatio) in individualsWithFitnessRatio)
