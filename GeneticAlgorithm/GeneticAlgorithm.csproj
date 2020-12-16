@@ -122,7 +122,7 @@
     <Compile Include="ExpressionTree\MathExpressionNode.cs" />
     <Compile Include="ExpressionTree\MathExpressionTree.cs" />
     <Compile Include="ExpressionTree\Operator.cs" />
-    <Compile Include="GeneticAlgorithm\GeneticAlgorithm.cs" />
+    <Compile Include="GeneticAlgorithm\GAEngine.cs" />
     <Compile Include="GeneticAlgorithm\PopulationSelector.cs" />
     <Compile Include="GeneticAlgorithm\StohasticGenerator.cs" />
     <Compile Include="GeneticAlgorithm\PopulationGenerator.cs" />

@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace GeneticAlgorithm.ExpressionTree
 {
     public class MathExpressionTree
     {
-        public MathExpressionNode Root { get; }
+        public MathExpressionNode Root { get; set; }
 
         public MathExpressionTree(MathExpressionNode root)
         {
@@ -38,19 +39,33 @@ namespace GeneticAlgorithm.ExpressionTree
             return currentOperators[new Random().Next(currentOperators.Count)];
         }
 
-        public static void SwitchSubtrees(MathExpressionNode first, MathExpressionNode second)
+        public MathExpressionNode GetRandomNode()
         {
-            MathExpressionNode firstParent = first.Parent;
-            MathExpressionNode secondParent = second.Parent;
-            if (firstParent.LeftChild.Id == first.Id)
-                firstParent.LeftChild = second;
-            else firstParent.RightChild = second;
-            if (secondParent.LeftChild.Id == second.Id)
-                secondParent.LeftChild = first;
-            else secondParent.RightChild = first;
+            List<MathExpressionNode> nodes = new List<MathExpressionNode>();
+            void traverse(MathExpressionNode currentNode)
+            {
+                if (currentNode != null)
+                {
+                    nodes.Add(currentNode);
+                    traverse(currentNode.LeftChild);
+                    traverse(currentNode.RightChild);
+                }
+            }
+            traverse(Root);
+            return nodes[new Random().Next(nodes.Count)];
+        }
 
-            first.Parent = secondParent;
-            second.Parent = firstParent;
+        public bool IsValidExpression()
+        {
+            try
+            {
+                Root.GetValue();
+                return true;
+            }
+            catch (DivideByZeroException)
+            {
+                return false;
+            }
         }
     }
 }

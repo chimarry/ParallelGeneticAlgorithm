@@ -20,8 +20,15 @@ namespace GeneticAlgorithm
             BlockingCollection<MathExpressionTree> expressions = new BlockingCollection<MathExpressionTree>(initialPopulationSize);
             Parallel.For(0, initialPopulationSize, (i) =>
             {
-                MathExpressionTree expression = GenerateIndividual();
-                expressions.Add(expression);
+                MathExpressionTree expression;
+                // Get valid expression
+                do
+                {
+                    expression = GenerateIndividual();
+                } while (!expression.IsValidExpression());
+
+                lock (expressions)
+                    expressions.Add(expression);
             });
             return expressions.ToList();
         }
@@ -51,6 +58,7 @@ namespace GeneticAlgorithm
                 }
                 return currentNode;
             }
+
             return new MathExpressionTree(getGenome(operatorsAndOperands, null, root));
         }
     }

@@ -37,6 +37,11 @@ namespace GeneticAlgorithm.ExpressionTree
 
         public virtual int GetValue() => value;
 
+        public virtual void Substite(MathExpressionNode otherNode)
+        {
+            value = otherNode.GetValue();
+        }
+
         public override bool Equals(object obj)
         {
             return obj is MathExpressionNode node &&

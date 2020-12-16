@@ -15,7 +15,7 @@ namespace GeneticAlgorithm
         public MainPage()
         {
             this.InitializeComponent();
-            GeneticAlgorithm.PopulationGenerator populationGenerator = new GeneticAlgorithm.PopulationGenerator();
+            PopulationGenerator populationGenerator = new PopulationGenerator();
             List<MathExpressionTree> expressions = populationGenerator.GeneratePopulation(30, new int[] { 10, 2, 13, 5, 6, 80 });
             string finalExpression = "Inicijalna populacija: ";
             foreach (var expression in expressions)
@@ -37,6 +37,29 @@ namespace GeneticAlgorithm
                 finalExpression += newExpression + " = " + b.Root.GetValue();
             }
             BestFitted.Text += finalExpression;
+
+            GAEngine engine = new GAEngine(0.15, 0.05, new StohasticGenerator(new int[] { 10, 2, 13, 5, 6, 80 }));
+            List<MathExpressionTree> crossover = engine.Evolve(best);
+            finalExpression = "Nakon ukrstanja: ";
+            foreach (var b in crossover)
+            {
+                finalExpression += Environment.NewLine;
+                string newExpression = "";
+                b.PrintInorder(b.Root, ref newExpression);
+                finalExpression += newExpression + " = " + b.Root.GetValue();
+            }
+            Crossover.Text += finalExpression;
+
+            List<MathExpressionTree> mutated = engine.Mutate(crossover);
+            finalExpression = "Nakon mutacije: ";
+            foreach (var b in mutated)
+            {
+                finalExpression += Environment.NewLine;
+                string newExpression = "";
+                b.PrintInorder(b.Root, ref newExpression);
+                finalExpression += newExpression + " = " + b.Root.GetValue();
+            }
+            Mutation.Text += finalExpression;
         }
     }
 }

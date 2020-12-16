@@ -8,9 +8,9 @@ namespace GeneticAlgorithm.ExpressionTree
 
         public override bool IsLeaf { get => false; }
 
-        public string OperationSign { get; }
+        public string OperationSign { get; private set; }
 
-        public Func<int, int, int> CorrespondingFunction { get; }
+        public Func<int, int, int> CorrespondingFunction { get; private set; }
 
         public Operator(Operation operation)
         {
@@ -27,6 +27,15 @@ namespace GeneticAlgorithm.ExpressionTree
                 }
             }
             (OperationSign, CorrespondingFunction) = initializeOperation();
+        }
+
+        public override void Substite(MathExpressionNode otherNode)
+        {
+            if (!(otherNode is Operator substitute))
+                throw new Exception();
+            CorrespondingFunction = substitute.CorrespondingFunction;
+            OperationSign = substitute.OperationSign;
+            Operation = substitute.Operation;
         }
 
         public override int GetValue()
