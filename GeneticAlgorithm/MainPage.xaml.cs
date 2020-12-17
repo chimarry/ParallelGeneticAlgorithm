@@ -43,23 +43,29 @@ namespace GeneticAlgorithm
             GAEngine gAEngine = new GAEngine(0.05, 0.15, stohasticGenerator);
             List<MathExpressionTree> expressions = populationGenerator.GeneratePopulation(100);
             Print("Inicijalna populacija: ", expressions, ExpressionBlock);
-            MathExpressionTree newMathTree = expressions[0].Copy();
-            /* await Task.Run(async () =>
-                     {
-                         for (int i = 0; i < 100; ++i)
-                         {
-                             List<MathExpressionTree> best = populationSelector.SelectFittestIndividuals(expressions);
-                             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => Print("Najbolje jedinke: ", best, BestFitted));
 
-                             List<MathExpressionTree> crossover = gAEngine.Evolve(best);
-                             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => Print("Nakon ukrstanja i mutacije: ", crossover, Crossover));
+            await Task.Run(async () =>
+                    {
+                        for (int i = 0; i < 100; ++i)
+                        {
+                            List<MathExpressionTree> best = populationSelector.SelectFittestIndividuals(expressions);
+                            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => Print("Najbolje jedinke: ", best, BestFitted));
 
-                             if (crossover.Any(x => x.Root.GetValue() == 56))
-                                 break;
-                             await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => NumberOfIteration.Text = "Broj iteracije: " + i);
-                             Thread.Sleep(500);
-                         }
-                     });*/
+                            List<MathExpressionTree> crossover = gAEngine.Evolve(best);
+                            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => Print("Nakon ukrstanja i mutacije: ", crossover, Crossover));
+
+                            if (crossover.Any(x => x.Root.GetValue() == 56))
+                            {
+                                string result = crossover.FirstOrDefault(x => x.Root.GetValue() == 56).ToString();
+                                await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => FoundExpression.Text = "Rezultat: " + result);
+                                break;
+                            }
+                            await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => PopulationCount.Text = "Broj jedinki nakon mutacije: " + crossover.Count);
+                            await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => NumberOfIteration.Text = "Broj iteracije: " + i);
+                            expressions = gAEngine.DoExtinction(crossover);
+                            Thread.Sleep(500);
+                        }
+                    });
         }
     }
 }

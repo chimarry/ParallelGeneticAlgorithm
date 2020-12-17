@@ -7,15 +7,20 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="1600">
-    <StackPanel Orientation="Vertical">
-        <StackPanel Orientation="Horizontal">
-            <Button x:Name="StartButton" Content="Start" Height="30" Width="100" Click="StartButton_Click"></Button>
-            <TextBlock x:Name="NumberOfIteration"></TextBlock>
+    <ScrollViewer VerticalScrollBarVisibility="Visible">
+        <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="StartButton" Content="Start" Height="30" Width="100" Click="StartButton_Click"></Button>
+                <TextBlock x:Name="NumberOfIteration"></TextBlock>
+                <TextBlock x:Name="PopulationCount"></TextBlock>
+                <TextBlock x:Name="FoundExpression"></TextBlock>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="ExpressionBlock"></TextBlock>
+                <TextBlock x:Name="BestFitted"></TextBlock>
+                <TextBlock x:Name="Crossover"></TextBlock>
+            </StackPanel>
         </StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <TextBlock x:Name="ExpressionBlock"></TextBlock>
-            <TextBlock x:Name="BestFitted"></TextBlock>
-            <TextBlock x:Name="Crossover"></TextBlock>
-        </StackPanel>
-    </StackPanel>
+    </ScrollViewer>
 </Page>

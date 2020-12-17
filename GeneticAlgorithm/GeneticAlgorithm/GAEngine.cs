@@ -27,21 +27,27 @@ namespace GeneticAlgorithm
                                                                                       .Select(g => (g.First(), g.Skip(1).FirstOrDefault()))
                                                                                       .ToList();
 
+            List<MathExpressionTree> newPopulation = new List<MathExpressionTree>();
+
             foreach ((MathExpressionTree first, MathExpressionTree second) in pairs)
             {
                 double randomProbability = stohasticGenerator.NextRandomDouble();
                 if (randomProbability > crossoverProbability)
-                    Crossover(first, second);
+                {
+                    MathExpressionTree firstOffspring = first.Copy();
+                    MathExpressionTree secondOffspring = second.Copy();
+                    Crossover(firstOffspring, secondOffspring);
+                    newPopulation.Add(firstOffspring);
+                    newPopulation.Add(secondOffspring);
+                }
             }
 
-            List<MathExpressionTree> newPopulation = new List<MathExpressionTree>();
             pairs.ForEach(x =>
             {
-                if (x.Item1.IsValidExpression())
-                    newPopulation.Add(x.Item1);
-                if (x.Item2.IsValidExpression())
-                    newPopulation.Add(x.Item2);
+                newPopulation.Add(x.Item1);
+                newPopulation.Add(x.Item2);
             });
+
             foreach (MathExpressionTree expression in newPopulation)
             {
                 double randomProbability = stohasticGenerator.NextRandomDouble();
@@ -49,6 +55,11 @@ namespace GeneticAlgorithm
                     Mutate(expression);
             }
             return newPopulation.Where(x => x.IsValidExpression()).ToList();
+        }
+
+        public List<MathExpressionTree> DoExtinction(List<MathExpressionTree> population)
+        {
+            return population.OrderBy(x => new Guid()).Take(100).ToList();
         }
 
         private int GetNumberOfPairs(int populationSize) => populationSize % 2 == 0 ? populationSize : populationSize - 1;

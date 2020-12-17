@@ -73,5 +73,12 @@ namespace GeneticAlgorithm.ExpressionTree
                 return false;
             }
         }
+
+        public override string ToString()
+        {
+            string expression = "";
+            PrintInorder(Root, ref expression);
+            return $"{expression} = {Root.GetValue()}";
+        }
     }
 }
