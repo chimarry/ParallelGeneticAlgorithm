@@ -29,7 +29,7 @@ namespace GeneticAlgorithm.ExpressionTree
             (OperationSign, CorrespondingFunction) = initializeOperation();
         }
 
-        public override void Substite(MathExpressionNode otherNode)
+        public override void SubstiteValue(MathExpressionNode otherNode)
         {
             if (!(otherNode is Operator substitute))
                 throw new Exception();
@@ -40,6 +40,17 @@ namespace GeneticAlgorithm.ExpressionTree
 
         public override int GetValue()
             => CorrespondingFunction.Invoke(LeftChild.GetValue(), RightChild.GetValue());
+
+        public override MathExpressionNode Copy(MathExpressionNode parent)
+        {
+            Operator newOperator = new Operator(Operation)
+            {
+                Parent = parent
+            };
+            newOperator.LeftChild = LeftChild.Copy(newOperator);
+            newOperator.RightChild = RightChild.Copy(newOperator);
+            return newOperator;
+        }
 
         public override string ToString()
              => OperationSign;

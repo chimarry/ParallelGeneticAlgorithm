@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace GeneticAlgorithm
 {
@@ -24,7 +23,7 @@ namespace GeneticAlgorithm
         public List<MathExpressionTree> SelectFittestIndividuals(List<MathExpressionTree> population)
         {
             List<MathExpressionTree> selectedIndividuals = new List<MathExpressionTree>();
-            IEnumerable<(MathExpressionTree individual, int fitnessRatio)> individualsWithFitnessRatio = population.Select(x => (x, CalculateFitness(x)));
+            IEnumerable<(MathExpressionTree individual, int fitnessRatio)> individualsWithFitnessRatio = population.Select(expression => (expression, CalculateFitness(expression)));
 
             int max = individualsWithFitnessRatio.Max(x => x.fitnessRatio);
             int min = individualsWithFitnessRatio.Min(x => x.fitnessRatio);

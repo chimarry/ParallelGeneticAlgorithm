@@ -12,13 +12,17 @@ namespace GeneticAlgorithm
     /// </summary>
     public class PopulationGenerator
     {
-        private int[] operands;
+        StohasticGenerator stohasticGenerator;
 
-        public List<MathExpressionTree> GeneratePopulation(int initialPopulationSize, int[] operands)
+        public PopulationGenerator(StohasticGenerator stohasticGenerator)
         {
-            this.operands = operands;
+            this.stohasticGenerator = stohasticGenerator;
+        }
+
+        public List<MathExpressionTree> GeneratePopulation(int initialPopulationSize)
+        {
             BlockingCollection<MathExpressionTree> expressions = new BlockingCollection<MathExpressionTree>(initialPopulationSize);
-            Parallel.For(0, initialPopulationSize, (i) =>
+            Parallel.For(0, initialPopulationSize, i =>
             {
                 MathExpressionTree expression;
                 // Get valid expression
@@ -27,15 +31,13 @@ namespace GeneticAlgorithm
                     expression = GenerateIndividual();
                 } while (!expression.IsValidExpression());
 
-                lock (expressions)
-                    expressions.Add(expression);
+                expressions.Add(expression);
             });
             return expressions.ToList();
         }
 
         private MathExpressionTree GenerateIndividual()
         {
-            StohasticGenerator stohasticGenerator = new StohasticGenerator(operands);
             int operandsCount = stohasticGenerator.NextRandom();
             List<MathExpressionNode> operatorsAndOperands = Enumerable.Range(0, 2 * operandsCount - 1)
                                                           .Select(x => x % 2 == 0 ? stohasticGenerator.GetRandomOperand() : stohasticGenerator.GetRandomOperator())

@@ -42,27 +42,13 @@ namespace GeneticAlgorithm
                 if (x.Item2.IsValidExpression())
                     newPopulation.Add(x.Item2);
             });
-
-            /*  foreach (MathExpressionTree expression in newPopulation)
-              {
-                  double randomProbability = stohasticGenerator.NextRandomDouble();
-                  if (randomProbability < mutationProbability)
-                      Mutate(expression);
-              }*/
-
-            return newPopulation;
-        }
-
-        public List<MathExpressionTree> Mutate(List<MathExpressionTree> newPopulation)
-        {
             foreach (MathExpressionTree expression in newPopulation)
             {
                 double randomProbability = stohasticGenerator.NextRandomDouble();
                 if (randomProbability < mutationProbability)
                     Mutate(expression);
             }
-
-            return newPopulation;
+            return newPopulation.Where(x => x.IsValidExpression()).ToList();
         }
 
         private int GetNumberOfPairs(int populationSize) => populationSize % 2 == 0 ? populationSize : populationSize - 1;
@@ -95,7 +81,7 @@ namespace GeneticAlgorithm
         private void Mutate(MathExpressionTree expression)
         {
             MathExpressionNode randomNode = expression.GetRandomNode();
-            randomNode.Substite(randomNode.IsLeaf ?
+            randomNode.SubstiteValue(randomNode.IsLeaf ?
                                            stohasticGenerator.GetRandomOperand()
                                            : stohasticGenerator.GetRandomOperator(randomNode.LeftChild, randomNode.RightChild));
         }

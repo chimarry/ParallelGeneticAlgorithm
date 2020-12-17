@@ -13,6 +13,12 @@ namespace GeneticAlgorithm.ExpressionTree
             this.Root = root;
         }
 
+        public MathExpressionTree Copy()
+        {
+            MathExpressionNode rootNode = Root.Copy(null);
+            return new MathExpressionTree(rootNode);
+        }
+
         public void PrintInorder(MathExpressionNode node, ref string expression)
         {
             if (node == null)
