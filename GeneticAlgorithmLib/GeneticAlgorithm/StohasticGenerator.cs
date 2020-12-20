@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeneticAlgorithm
 {
@@ -11,57 +9,32 @@ namespace GeneticAlgorithm
     {
         private const int maxNumber = 6;
 
-        private readonly Random randomGenerator = new Random();
+        private readonly ThreadSafeRandom randomGenerator = new ThreadSafeRandom();
         private static readonly int operationCount = Enum.GetValues(typeof(Operation)).Length;
-        private readonly int[] operands;
+        public readonly int[] Operands;
 
         public StohasticGenerator(IEnumerable<int> operands)
         {
-            this.operands = operands.ToArray();
+            this.Operands = operands.ToArray();
         }
 
         public Operator GetRandomOperator()
-        {
-            lock (randomGenerator)
-            {
-                return new Operator((Operation)randomGenerator.Next(operationCount));
-            }
-        }
+            => new Operator((Operation)randomGenerator.Next(max: operationCount));
 
         public Operator GetRandomOperator(MathExpressionNode firstOperand, MathExpressionNode secondOperand)
-        {
-            lock (randomGenerator)
+            => new Operator((Operation)randomGenerator.Next(max: operationCount))
             {
-                return new Operator((Operation)randomGenerator.Next(operationCount))
-                {
-                    LeftChild = firstOperand,
-                    RightChild = secondOperand
-                };
-            }
-        }
+                LeftChild = firstOperand,
+                RightChild = secondOperand
+            };
 
         public MathExpressionNode GetRandomOperand()
-        {
-            lock (randomGenerator)
-            {
-                return new MathExpressionNode(operands[randomGenerator.Next(operands.Length)]);
-            }
-        }
+            => new MathExpressionNode(Operands[randomGenerator.Next(max: Operands.Length)]);
 
-        public int NextRandom()
-        {
-            lock (randomGenerator)
-            {
-                return randomGenerator.Next(2, maxNumber);
-            }
-        }
+        public int OperandsCount()
+             => randomGenerator.Next(min: 2, max: maxNumber);
 
         public double NextRandomDouble()
-        {
-            lock (randomGenerator)
-            {
-                return randomGenerator.NextDouble();
-            }
-        }
+            => randomGenerator.NextDouble();
     }
 }

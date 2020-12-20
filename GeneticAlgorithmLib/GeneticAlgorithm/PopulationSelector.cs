@@ -1,4 +1,5 @@
 ﻿using GeneticAlgorithm.ExpressionTree;
+using GeneticAlgorithm.Util;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace GeneticAlgorithm
         {
             this.eliteCount = eliteCount;
             this.result = result;
-            this.stohasticGenerator = stohasticGenerator;
+            this.stohasticGenerator = stohasticGenerator.Copy();
         }
 
         public List<MathExpressionTree> GeneratePopulation(int initialPopulationSize)
@@ -25,13 +26,7 @@ namespace GeneticAlgorithm
             BlockingCollection<MathExpressionTree> expressions = new BlockingCollection<MathExpressionTree>(initialPopulationSize);
             Parallel.For(0, initialPopulationSize, i =>
             {
-                MathExpressionTree expression;
-                // Get valid expression
-                do
-                {
-                    expression = GenerateIndividual();
-                } while (!expression.IsValidExpression());
-
+                MathExpressionTree expression = GenerateIndividual();
                 expressions.Add(expression);
             });
             return expressions.ToList();
@@ -39,30 +34,35 @@ namespace GeneticAlgorithm
 
         public MathExpressionTree GenerateIndividual()
         {
-            int operandsCount = stohasticGenerator.NextRandom();
-            List<MathExpressionNode> operatorsAndOperands = Enumerable.Range(0, 2 * operandsCount - 1)
-                                                                      .Select(x => x % 2 == 0 ? stohasticGenerator.GetRandomOperand() : stohasticGenerator.GetRandomOperator())
-                                                                      .ToList();
-            MathExpressionNode root = operatorsAndOperands.Where(x => !x.IsLeaf)
-                                                          .OrderBy(x => Guid.NewGuid())
-                                                          .First();
-
-            MathExpressionNode getGenome(List<MathExpressionNode> elements, MathExpressionNode parent, MathExpressionNode rootNode = null)
+            MathExpressionTree validExpression;
+            do
             {
-                if (elements.Count == 0)
-                    return null;
-                MathExpressionNode currentNode = (rootNode ?? elements.FirstOrDefault(x => !x.IsLeaf)) ?? elements.First();
-                currentNode.Parent = parent;
-                if (!currentNode.IsLeaf)
-                {
-                    int currentNodeIndex = elements.IndexOf(currentNode);
-                    currentNode.LeftChild = getGenome(elements.Take(currentNodeIndex).ToList(), currentNode);
-                    currentNode.RightChild = getGenome(elements.Skip(currentNodeIndex + 1).ToList(), currentNode);
-                }
-                return currentNode;
-            }
+                int operandsCount = stohasticGenerator.OperandsCount();
+                List<MathExpressionNode> operatorsAndOperands = Enumerable.Range(0, 2 * operandsCount - 1)
+                                                                          .Select(x => x % 2 == 0 ? stohasticGenerator.GetRandomOperand() : stohasticGenerator.GetRandomOperator())
+                                                                          .ToList();
+                MathExpressionNode root = operatorsAndOperands.Where(x => !x.IsLeaf)
+                                                              .OrderBy(x => Guid.NewGuid())
+                                                              .First();
 
-            return new MathExpressionTree(getGenome(operatorsAndOperands, null, root));
+                MathExpressionNode getGenome(List<MathExpressionNode> elements, MathExpressionNode parent, MathExpressionNode rootNode = null)
+                {
+                    if (elements.Count == 0)
+                        return null;
+                    MathExpressionNode currentNode = (rootNode ?? elements.FirstOrDefault(x => !x.IsLeaf)) ?? elements.First();
+                    currentNode.Parent = parent;
+                    if (!currentNode.IsLeaf)
+                    {
+                        int currentNodeIndex = elements.IndexOf(currentNode);
+                        currentNode.LeftChild = getGenome(elements.Take(currentNodeIndex).ToList(), currentNode);
+                        currentNode.RightChild = getGenome(elements.Skip(currentNodeIndex + 1).ToList(), currentNode);
+                    }
+                    return currentNode;
+                }
+
+                validExpression = new MathExpressionTree(getGenome(operatorsAndOperands, null, root));
+            } while (!validExpression.IsValidExpression());
+            return validExpression;
         }
 
         public List<MathExpressionTree> SelectFittestIndividuals(List<MathExpressionTree> population)
@@ -81,9 +81,10 @@ namespace GeneticAlgorithm
 
             individualsWithFitnessRatio = individualsWithFitnessRatio.Skip(eliteCount);
 
+            ThreadSafeRandom random = new ThreadSafeRandom();
             foreach ((MathExpressionTree individual, int fitnessRatio) in individualsWithFitnessRatio)
             {
-                double randomProbability = stohasticGenerator.NextRandomDouble();
+                double randomProbability = random.NextDouble();
                 double probabilityToBeSelected = (fitnessRatio - min) / (double)(max - min);
                 if (probabilityToBeSelected > randomProbability && !selectedIndividuals.Contains(individual, new MathExpressionTreeEqualityComparer()))
                     selectedIndividuals.Add(individual);

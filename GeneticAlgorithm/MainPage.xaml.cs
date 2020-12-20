@@ -41,7 +41,7 @@ namespace GeneticAlgorithm
             int populationSize = 100;
             StohasticGenerator stohasticGenerator = new StohasticGenerator(new int[] { 10, 2, 110, 5, 6, 80 });
             PopulationSelector populationSelector = new PopulationSelector(lookup, 10, stohasticGenerator);
-            EvolutionPhase gAEngine = new EvolutionPhase(0.10, 0.15, populationSize, stohasticGenerator, populationSelector);
+            EvolutionPhase gAEngine = new EvolutionPhase(lookup, 10, 0.10, 0.15, populationSize, stohasticGenerator);
 
             List<MathExpressionTree> expressions = populationSelector.GeneratePopulation(populationSize);
             Print("Inicijalna populacija: ", expressions, ExpressionBlock);

@@ -36,34 +36,35 @@ namespace GeneticAlgorithm
         private List<MathExpressionTree> Evolve(List<MathExpressionTree> selectedIndividuals)
         {
             List<(MathExpressionTree, MathExpressionTree)> pairs = selectedIndividuals.ParallelOrderBy(x => new Guid())
-                                                                                      .Take(GetNumberOfPairs(selectedIndividuals.Count))
+                                                                                      .Take(selectedIndividuals.Count)
                                                                                       .Select((individual, i) => new { index = i, individual })
                                                                                       .GroupBy(x => x.index / 2, x => x.individual)
-                                                                                      .Select(g => (g.First(), g.Skip(1).FirstOrDefault()))
+                                                                                      .Select(g => (g.First(), g.Skip(1).FirstOrNew(populationSelector)))
                                                                                       .ToList();
             List<MathExpressionTree> newPopulation = new List<MathExpressionTree>();
 
+            ThreadSafeRandom crossoverRandom = new ThreadSafeRandom();
+            ThreadSafeRandom mutationRandom = new ThreadSafeRandom();
+
             foreach ((MathExpressionTree firstParent, MathExpressionTree secondParent) in pairs)
             {
-                double randomProbability = stohasticGenerator.NextRandomDouble();
+                double randomProbability = crossoverRandom.NextDouble();
                 if (randomProbability > configuration.CrossoverProbability)
                 {
                     MathExpressionTree firstCopy = firstParent.Copy();
                     MathExpressionTree secondCopy = secondParent.Copy();
                     Crossover(firstCopy, secondCopy);
-                    newPopulation.Add(firstCopy);
-                    newPopulation.Add(secondCopy);
+                    newPopulation.AddTwo(firstCopy, secondCopy);
                 }
             }
             pairs.ForEach(x =>
             {
-                newPopulation.Add(x.Item1);
-                newPopulation.Add(x.Item2);
+                newPopulation.AddTwo(x.Item1, x.Item2);
             });
 
             foreach (MathExpressionTree expression in newPopulation)
             {
-                double randomProbability = stohasticGenerator.NextRandomDouble();
+                double randomProbability = mutationRandom.NextDouble();
                 if (randomProbability < configuration.MutationProbability || !expression.IsValidExpression())
                     Mutate(expression);
             }
@@ -72,15 +73,8 @@ namespace GeneticAlgorithm
                                                                      .Distinct(new MathExpressionTreeEqualityComparer())
                                                                      .ToList();
             while (validExpressions.Count < configuration.PopulationSize)
-            {
-                MathExpressionTree expression;
-                // Get valid expression
-                do
-                {
-                    expression = populationSelector.GenerateIndividual();
-                } while (!expression.IsValidExpression());
-                validExpressions.Add(expression);
-            }
+                validExpressions.Add(populationSelector.GenerateIndividual());
+
             IEnumerable<MathExpressionTree> elite = validExpressions.ParallelOrderBy(x => populationSelector.CalculateFitness(x))
                                                              .Take(configuration.EliteCount);
 
@@ -88,8 +82,6 @@ namespace GeneticAlgorithm
                         .Take(configuration.PopulationSize)
                         .ToList();
         }
-
-        private int GetNumberOfPairs(int selectedIndividualsCount) => selectedIndividualsCount % 2 == 0 ? selectedIndividualsCount : selectedIndividualsCount - 1;
 
         private void Crossover(MathExpressionTree first, MathExpressionTree second)
         {
