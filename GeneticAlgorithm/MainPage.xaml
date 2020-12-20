@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="1600">
-    <ScrollViewer VerticalScrollBarVisibility="Visible">
+    <ScrollViewer VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible">
         <StackPanel Orientation="Vertical">
             <StackPanel Orientation="Horizontal">
                 <Button x:Name="StartButton" Content="Start" Height="30" Width="100" Click="StartButton_Click"></Button>

@@ -119,13 +119,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ExpressionTree\MathExpressionNode.cs" />
-    <Compile Include="ExpressionTree\MathExpressionTree.cs" />
-    <Compile Include="ExpressionTree\Operator.cs" />
-    <Compile Include="GeneticAlgorithm\GAEngine.cs" />
-    <Compile Include="GeneticAlgorithm\PopulationSelector.cs" />
-    <Compile Include="GeneticAlgorithm\StohasticGenerator.cs" />
-    <Compile Include="GeneticAlgorithm\PopulationGenerator.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -160,6 +153,12 @@
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.10</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GeneticAlgorithmLib\GeneticAlgorithmLib.csproj">
+      <Project>{7cb97a0e-7ead-4060-860c-e89eb8b485a5}</Project>
+      <Name>GeneticAlgorithmLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

@@ -1,26 +1,31 @@
 ﻿using GeneticAlgorithm.ExpressionTree;
+using GeneticAlgorithm.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace GeneticAlgorithm
 {
-    public class GAEngine
+    public class EvolutionPhase
     {
         private readonly double mutationProbability;
         private readonly double crossoverProbability;
         private readonly StohasticGenerator stohasticGenerator;
+        private readonly PopulationSelector populationSelector;
+        private readonly int populationSize;
 
-        public GAEngine(double mutationProbability, double crossoverProbability, StohasticGenerator stohasticGenerator)
+        public EvolutionPhase(double mutationProbability, double crossoverProbability, int populationSize, StohasticGenerator stohasticGenerator, PopulationSelector populationSelector)
         {
             this.mutationProbability = mutationProbability;
             this.crossoverProbability = crossoverProbability;
             this.stohasticGenerator = stohasticGenerator;
+            this.populationSize = populationSize;
+            this.populationSelector = populationSelector;
         }
 
         public List<MathExpressionTree> Evolve(List<MathExpressionTree> selectedIndividuals)
         {
-            List<(MathExpressionTree, MathExpressionTree)> pairs = selectedIndividuals.OrderBy(x => new Guid())
+            List<(MathExpressionTree, MathExpressionTree)> pairs = selectedIndividuals.ParallelOrderBy(x => new Guid())
                                                                                       .Take(GetNumberOfPairs(selectedIndividuals.Count))
                                                                                       .Select((individual, i) => new { index = i, individual })
                                                                                       .GroupBy(x => x.index / 2, x => x.individual)
@@ -29,19 +34,18 @@ namespace GeneticAlgorithm
 
             List<MathExpressionTree> newPopulation = new List<MathExpressionTree>();
 
-            foreach ((MathExpressionTree first, MathExpressionTree second) in pairs)
+            foreach ((MathExpressionTree firstParent, MathExpressionTree secondParent) in pairs)
             {
                 double randomProbability = stohasticGenerator.NextRandomDouble();
                 if (randomProbability > crossoverProbability)
                 {
-                    MathExpressionTree firstOffspring = first.Copy();
-                    MathExpressionTree secondOffspring = second.Copy();
-                    Crossover(firstOffspring, secondOffspring);
-                    newPopulation.Add(firstOffspring);
-                    newPopulation.Add(secondOffspring);
+                    MathExpressionTree firstCopy = firstParent.Copy();
+                    MathExpressionTree secondCopy = secondParent.Copy();
+                    Crossover(firstCopy, secondCopy);
+                    newPopulation.Add(firstCopy);
+                    newPopulation.Add(secondCopy);
                 }
             }
-
             pairs.ForEach(x =>
             {
                 newPopulation.Add(x.Item1);
@@ -51,18 +55,32 @@ namespace GeneticAlgorithm
             foreach (MathExpressionTree expression in newPopulation)
             {
                 double randomProbability = stohasticGenerator.NextRandomDouble();
-                if (randomProbability < mutationProbability)
+                if (randomProbability < mutationProbability || !expression.IsValidExpression())
                     Mutate(expression);
             }
-            return newPopulation.Where(x => x.IsValidExpression()).ToList();
+
+            List<MathExpressionTree> validExpressions = newPopulation.Where(x => x.IsValidExpression())
+                                                                     .Distinct(new MathExpressionTreeEqualityComparer())
+                                                                     .ToList();
+            while (validExpressions.Count < populationSize)
+            {
+                MathExpressionTree expression;
+                // Get valid expression
+                do
+                {
+                    expression = populationSelector.GenerateIndividual();
+                } while (!expression.IsValidExpression());
+                validExpressions.Add(expression);
+            }
+            IEnumerable<MathExpressionTree> elite = validExpressions.ParallelOrderBy(x => populationSelector.CalculateFitness(x))
+                                                             .Take(populationSize / 3);
+
+            return elite.Concat(validExpressions)
+                        .Take(populationSize)
+                        .ToList();
         }
 
-        public List<MathExpressionTree> DoExtinction(List<MathExpressionTree> population)
-        {
-            return population.OrderBy(x => new Guid()).Take(100).ToList();
-        }
-
-        private int GetNumberOfPairs(int populationSize) => populationSize % 2 == 0 ? populationSize : populationSize - 1;
+        private int GetNumberOfPairs(int selectedIndividualsCount) => selectedIndividualsCount % 2 == 0 ? selectedIndividualsCount : selectedIndividualsCount - 1;
 
         private void Crossover(MathExpressionTree first, MathExpressionTree second)
         {

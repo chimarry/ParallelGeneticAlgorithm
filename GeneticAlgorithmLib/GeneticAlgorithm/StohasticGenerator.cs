@@ -9,6 +9,8 @@ namespace GeneticAlgorithm
 {
     public class StohasticGenerator
     {
+        private const int maxNumber = 6;
+
         private readonly Random randomGenerator = new Random();
         private static readonly int operationCount = Enum.GetValues(typeof(Operation)).Length;
         private readonly int[] operands;
@@ -50,7 +52,7 @@ namespace GeneticAlgorithm
         {
             lock (randomGenerator)
             {
-                return randomGenerator.Next(2, operands.Length);
+                return randomGenerator.Next(2, maxNumber);
             }
         }
 
