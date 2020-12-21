@@ -14,7 +14,7 @@
   <mp:PhoneIdentity PhoneProductId="ee962630-709b-4189-86e6-e5cd0fda93d4" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>GeneticAlgorithm</DisplayName>
+    <DisplayName>Genetic Algorithm</DisplayName>
     <PublisherDisplayName>Marija</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -32,13 +32,16 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="GeneticAlgorithm.App">
       <uap:VisualElements
-        DisplayName="GeneticAlgorithm"
+        DisplayName="Genetic Algorithm"
         Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png"
         Description="GeneticAlgorithm"
-        BackgroundColor="transparent">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        BackgroundColor="transparent" Square44x44Logo="Assets\GaIcon.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png">
+        </uap:DefaultTile >
+        <uap:SplashScreen Image="Assets\SplashScreen.png"  BackgroundColor="white"/>
+        <uap:LockScreen BadgeLogo="Assets\BadgeLogo.png" Notification="badge"/>
+        <uap:InitialRotationPreference>
+          <uap:Rotation Preference="landscape"/></uap:InitialRotationPreference>
       </uap:VisualElements>
     </Application>
   </Applications>

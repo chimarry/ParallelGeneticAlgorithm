@@ -6,22 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="1600">
-    <ScrollViewer VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible">
-        <StackPanel Orientation="Vertical">
-            <StackPanel Orientation="Horizontal">
-                <Button x:Name="StartButton" Content="Start" Height="30" Width="100" Click="StartButton_Click"></Button>
-                <TextBlock x:Name="NumberOfIteration"></TextBlock>
-                <TextBlock x:Name="PopulationCount"></TextBlock>
-                <TextBlock x:Name="FoundExpression"></TextBlock>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="ExpressionBlock"></TextBlock>
-                <TextBlock x:Name="BestFitted"></TextBlock>
-                <TextBlock x:Name="Crossover"></TextBlock>
-            </StackPanel>
-            <Button Name="File" Content="File" Click="File_Click"></Button>
-        </StackPanel>
-    </ScrollViewer>
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid>
+        
+    </Grid>
 </Page>

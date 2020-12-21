@@ -40,37 +40,37 @@ namespace GeneticAlgorithm
 
         private async void StartButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            int lookup = 8068;
-            int populationSize = 100;
-            StohasticGenerator stohasticGenerator = new StohasticGenerator(new int[] { 10, 2, 110, 5, 6, 80 });
-            PopulationSelector populationSelector = new PopulationSelector(lookup, 10, stohasticGenerator);
-            EvolutionPhase gAEngine = new EvolutionPhase(lookup, 10, 0.10, 0.15, populationSize, stohasticGenerator);
+            //int lookup = 8068;
+            //int populationSize = 100;
+            //StohasticGenerator stohasticGenerator = new StohasticGenerator(new int[] { 10, 2, 110, 5, 6, 80 });
+            //PopulationSelector populationSelector = new PopulationSelector(lookup, 10, stohasticGenerator);
+            //EvolutionPhase gAEngine = new EvolutionPhase(lookup, 10, 0.10, 0.15, populationSize, stohasticGenerator);
 
-            List<MathExpressionTree> expressions = populationSelector.GeneratePopulation(populationSize);
-            Print("Inicijalna populacija: ", expressions, ExpressionBlock);
+            //List<MathExpressionTree> expressions = populationSelector.GeneratePopulation(populationSize);
+            //Print("Inicijalna populacija: ", expressions, ExpressionBlock);
 
-            await Task.Run(async () =>
-                    {
-                        for (int i = 0; i < 100; ++i)
-                        {
-                            List<MathExpressionTree> best = populationSelector.SelectFittestIndividuals(expressions);
-                            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => Print("Najbolje jedinke: ", best, BestFitted));
+            //await Task.Run(async () =>
+            //        {
+            //            for (int i = 0; i < 100; ++i)
+            //            {
+            //                List<MathExpressionTree> best = populationSelector.SelectFittestIndividuals(expressions);
+            //                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => Print("Najbolje jedinke: ", best, BestFitted));
 
-                            List<MathExpressionTree> crossover = gAEngine.Evolve(best);
-                            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => Print("Nakon ukrstanja i mutacije: ", crossover, Crossover));
+            //                List<MathExpressionTree> crossover = gAEngine.Evolve(best);
+            //                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => Print("Nakon ukrstanja i mutacije: ", crossover, Crossover));
 
-                            if (crossover.Any(x => x.Root.GetValue() == lookup))
-                            {
-                                string result = crossover.FirstOrDefault(x => x.Root.GetValue() == lookup).ToString();
-                                await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => FoundExpression.Text = "Rezultat: " + result);
-                                break;
-                            }
-                            await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => PopulationCount.Text = "Broj jedinki nakon mutacije: " + crossover.Count + "------- ");
-                            await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => NumberOfIteration.Text = "Broj iteracije: " + i + "-------");
-                            expressions = crossover;
-                            Thread.Sleep(500);
-                        }
-                    });
+            //                if (crossover.Any(x => x.Root.GetValue() == lookup))
+            //                {
+            //                    string result = crossover.FirstOrDefault(x => x.Root.GetValue() == lookup).ToString();
+            //                    await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => FoundExpression.Text = "Rezultat: " + result);
+            //                    break;
+            //                }
+            //                await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => PopulationCount.Text = "Broj jedinki nakon mutacije: " + crossover.Count + "------- ");
+            //                await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => NumberOfIteration.Text = "Broj iteracije: " + i + "-------");
+            //                expressions = crossover;
+            //                Thread.Sleep(500);
+            //            }
+            //        });
         }
 
         private async void File_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
