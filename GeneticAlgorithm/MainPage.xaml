@@ -21,6 +21,7 @@
                 <TextBlock x:Name="BestFitted"></TextBlock>
                 <TextBlock x:Name="Crossover"></TextBlock>
             </StackPanel>
+            <Button Name="File" Content="File" Click="File_Click"></Button>
         </StackPanel>
     </ScrollViewer>
 </Page>

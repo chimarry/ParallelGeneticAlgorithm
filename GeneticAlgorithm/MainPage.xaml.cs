@@ -16,9 +16,12 @@ namespace GeneticAlgorithm
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        ImageMaker imageMaker = new ImageMaker();
+
         public MainPage()
         {
             this.InitializeComponent();
+      
         }
 
 
@@ -68,6 +71,11 @@ namespace GeneticAlgorithm
                             Thread.Sleep(500);
                         }
                     });
+        }
+
+        private async void File_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            await imageMaker.SaveResultAsImage(12, "(2+3)*7=56");
         }
     }
 }
