@@ -119,7 +119,17 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\IndeterminedProgressRing.xaml.cs">
+      <DependentUpon>IndeterminedProgressRing.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\JobControl.xaml.cs">
+      <DependentUpon>JobControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\JobUnitControl.xaml.cs">
+      <DependentUpon>JobUnitControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ImageMaker.cs" />
+    <Compile Include="Job.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -191,6 +201,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Controls\IndeterminedProgressRing.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\JobControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\JobUnitControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

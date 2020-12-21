@@ -1,9 +1,14 @@
 ﻿using GeneticAlgorithm.ExpressionTree;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Streams;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
 
@@ -21,9 +26,7 @@ namespace GeneticAlgorithm
         public MainPage()
         {
             this.InitializeComponent();
-      
         }
-
 
         private void Print(string finalExpression, List<MathExpressionTree> expressions, TextBlock textBlock)
         {
@@ -76,6 +79,26 @@ namespace GeneticAlgorithm
         private async void File_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             await imageMaker.SaveResultAsImage(12, "(2+3)*7=56");
+        }
+
+        private async void LoadJobsButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            List<Job> jobs = new List<Job>();
+            FolderPicker openFolderPicker = new FolderPicker()
+            {
+                SuggestedStartLocation = PickerLocationId.Desktop
+            };
+            openFolderPicker.FileTypeFilter.Add(".ga");
+            StorageFolder folder = await openFolderPicker.PickSingleFolderAsync();
+            IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
+            foreach (StorageFile file in files)
+            {
+                using (Stream stream = await file.OpenStreamForReadAsync())
+                {
+                    XDocument jobConfiguration = await Task.Run(() => XDocument.Load(stream));
+                    jobs.Add(Job.InitializeFromXML(jobConfiguration));
+                }
+            }
         }
     }
 }
