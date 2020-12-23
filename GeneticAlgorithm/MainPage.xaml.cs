@@ -39,5 +39,26 @@ namespace GeneticAlgorithm
             ContentDialog contentDialog = new CreateJob(jobManager);
             await contentDialog.ShowAsync();
         }
+
+        private void Test_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            SemaphoreSlim semaphoreSlim = new SemaphoreSlim(2);
+            Parallel.For(0, 20, async i =>
+            {
+                await semaphoreSlim.WaitAsync();
+                await Dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
+                {
+                    lock (Block)
+                        Block.Children.Add(new TextBlock() { Text = i.ToString() });
+                });
+                Thread.Sleep(new Random().Next(200, 5000));
+                await Dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
+                {
+                    lock (Block)
+                        Block.Children.Remove(Block.Children.Select(x => x as TextBlock).First(x => x.Text == i.ToString()));
+                });
+                semaphoreSlim.Release();
+            });
+        }
     }
 }

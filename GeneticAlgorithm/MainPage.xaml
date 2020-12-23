@@ -9,9 +9,14 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Grid>
         <Viewbox>
-            <StackPanel Orientation="Horizontal">
-                <Button x:Name="AddJobButton" Content="Add job" Click="AddJobButton_Click"></Button>
-                <Button x:Name="LoadJobsButton" Content="Load jobs" Foreground="Blue" Background="White" Click="LoadJobsButton_Click"></Button>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="AddJobButton" Content="Add job" Click="AddJobButton_Click"></Button>
+                    <Button x:Name="LoadJobsButton" Content="Load jobs" Foreground="Blue" Background="White" Click="LoadJobsButton_Click"></Button>
+                    <Button x:Name="Test" Content="Test" Click="Test_Click"></Button>
+                </StackPanel>
+                <StackPanel Orientation="Vertical" x:Name="Block">
+                </StackPanel>
             </StackPanel>
         </Viewbox>
     </Grid>

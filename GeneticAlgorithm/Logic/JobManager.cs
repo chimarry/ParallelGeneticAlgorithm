@@ -13,7 +13,7 @@ namespace GeneticAlgorithm.Logic
     {
         private readonly ImageMaker imageMaker = new ImageMaker();
 
-        private readonly Semaphore jobSemaphore = new Semaphore(Job.MaxLevelOfParallelism, Job.MaxLevelOfParallelism);
+        private readonly SemaphoreSlim jobSemaphore = new SemaphoreSlim(Job.MaxLevelOfParallelism, Job.MaxLevelOfParallelism);
 
         private Queue<Job> PendingJobs { get; set; } = new Queue<Job>();
 
@@ -54,8 +54,9 @@ namespace GeneticAlgorithm.Logic
                     Job jobToBeExecuted;
                     lock (PendingJobs)
                         jobToBeExecuted = PendingJobs.Dequeue();
-                    ExecutingJobs.Add(jobToBeExecuted);
-
+                    lock (ExecutingJobs)
+                        ExecutingJobs.Add(jobToBeExecuted);
+                    Task startedTask = Task.Factory.StartNew(() => jobToBeExecuted.Execute());
                 }
             }
         }

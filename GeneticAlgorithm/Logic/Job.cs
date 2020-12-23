@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using GeneticAlgorithm.ExpressionTree;
+using GeneticAlgorithm.Util;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace GeneticAlgorithm.Logic
@@ -16,7 +19,7 @@ namespace GeneticAlgorithm.Logic
 
         public Queue<JobUnit> PendingJobUnits { get; set; } = new Queue<JobUnit>();
 
-        public List<JobUnit> ActiveJobUnits { get; set; } = new List<JobUnit>();
+        public List<Task> ActiveJobUnits { get; set; } = new List<Task>();
 
         public List<JobUnit> FinishedJobUnits { get; set; } = new List<JobUnit>();
 
@@ -27,9 +30,9 @@ namespace GeneticAlgorithm.Logic
 
         public bool IsStopped { get; set; }
 
-        public Semaphore JobSemaphor { get; set; }
+        public SemaphoreSlim JobSemaphor { get; set; }
 
-        private readonly Semaphore jobUnitSemaphore;
+        private readonly SemaphoreSlim jobUnitSemaphore;
 
         private Job()
         {
@@ -43,7 +46,7 @@ namespace GeneticAlgorithm.Logic
             Id = identifier;
             RequestedLevelOfParallelism = levelOfParallelism;
             int initialThreadCount = RequestedLevelOfParallelism < MaxLevelOfParallelismPerJob ? RequestedLevelOfParallelism : MaxLevelOfParallelismPerJob;
-            jobUnitSemaphore = new Semaphore(initialThreadCount, MaxLevelOfParallelismPerJob);
+            jobUnitSemaphore = new SemaphoreSlim(initialThreadCount, MaxLevelOfParallelismPerJob);
         }
 
         public static Job InitializeFromXml(XDocument xmlDocument)
@@ -59,18 +62,73 @@ namespace GeneticAlgorithm.Logic
             return job;
         }
 
+
+        public async Task Execute()
+        {
+            await JobSemaphor.WaitAsync();
+            while (PendingJobUnits.NotEmpty())
+            {
+                if (ActiveJobUnits.Count < RequestedLevelOfParallelism)
+                {
+                    JobUnit jobUnit;
+                    lock (PendingJobUnits)
+                        jobUnit = PendingJobUnits.Dequeue();
+                    Task startedTask = Task.Factory.StartNew(async () => await jobUnit.Execute());
+                    lock (ActiveJobUnits)
+                        ActiveJobUnits.Add(startedTask);
+                }
+            }
+            // Treba da zapocne svoje izvrsavanje
+            // Treba da pokrene svoje podzadatke, paralelno, na onoliko tredova koliko se specifikovano.
+            // Kada se zavrsi jedan zadatak, poziva se drugi
+        }
+
+        public async Task Pause()
+        {
+
+        }
+
+        public async Task Resume()
+        {
+
+        }
+
+        public async Task Stop()
+        {
+
+        }
+
+        public async Task Finish()
+        {
+
+        }
         public class JobUnit
         {
+            private readonly GeneticAlgorithmExecutor geneticAlgorithmExecutor;
             public int RequestedNumber { get; set; }
 
             public string Name { get; set; }
-
-            public JobUnit() { }
 
             public JobUnit(string number, string name)
             {
                 RequestedNumber = int.Parse(number);
                 Name = name;
+                ThreadSafeRandom threadSafeRandom = new ThreadSafeRandom();
+                GeneticAlgorithmConfiguration geneticAlgorithmConfiguration = new GeneticAlgorithmConfiguration(RequestedNumber)
+                {
+                    Operands = new int[] { 10, 1, 28, 3, 14, 80 }
+                };
+                geneticAlgorithmExecutor = new GeneticAlgorithmExecutor(geneticAlgorithmConfiguration);
+            }
+
+            public async Task Execute()
+            {
+                /*
+                * Treba da izvrsava geneticki algoritam. Treba se moci pauzirati, i treba moci nastaviti izvrsavanje.
+                * Treba da obavijesti kada je zavrsio sa izvrsavanjem, i da rezultat sacuva kao sliku.
+                * Treba da azurira UI shodno datim aktivnostima.
+                */
+                MathExpressionTree tree = geneticAlgorithmExecutor.Execute();
             }
         }
     }
