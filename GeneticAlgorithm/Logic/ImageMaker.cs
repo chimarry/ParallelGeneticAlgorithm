@@ -8,7 +8,7 @@ using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI;
 
-namespace GeneticAlgorithm
+namespace GeneticAlgorithm.Logic
 {
     public class ImageMaker
     {

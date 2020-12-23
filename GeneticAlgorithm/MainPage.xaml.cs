@@ -1,4 +1,5 @@
 ﻿using GeneticAlgorithm.ExpressionTree;
+using GeneticAlgorithm.Logic;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,84 +22,22 @@ namespace GeneticAlgorithm
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        ImageMaker imageMaker = new ImageMaker();
+        private readonly IJobManager jobManager = new JobManager();
 
         public MainPage()
         {
             this.InitializeComponent();
         }
 
-        private void Print(string finalExpression, List<MathExpressionTree> expressions, TextBlock textBlock)
-        {
-            textBlock.Text = "";
-            foreach (MathExpressionTree expression in expressions)
-            {
-                finalExpression += Environment.NewLine;
-                string newExpression = "";
-                expression.PrintInorder(expression.Root, ref newExpression);
-                finalExpression += newExpression + " = " + expression.Root.GetValue();
-            }
-            textBlock.Text += finalExpression;
-        }
-
-        private async void StartButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
-        {
-            //int lookup = 8068;
-            //int populationSize = 100;
-            //StohasticGenerator stohasticGenerator = new StohasticGenerator(new int[] { 10, 2, 110, 5, 6, 80 });
-            //PopulationSelector populationSelector = new PopulationSelector(lookup, 10, stohasticGenerator);
-            //EvolutionPhase gAEngine = new EvolutionPhase(lookup, 10, 0.10, 0.15, populationSize, stohasticGenerator);
-
-            //List<MathExpressionTree> expressions = populationSelector.GeneratePopulation(populationSize);
-            //Print("Inicijalna populacija: ", expressions, ExpressionBlock);
-
-            //await Task.Run(async () =>
-            //        {
-            //            for (int i = 0; i < 100; ++i)
-            //            {
-            //                List<MathExpressionTree> best = populationSelector.SelectFittestIndividuals(expressions);
-            //                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => Print("Najbolje jedinke: ", best, BestFitted));
-
-            //                List<MathExpressionTree> crossover = gAEngine.Evolve(best);
-            //                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => Print("Nakon ukrstanja i mutacije: ", crossover, Crossover));
-
-            //                if (crossover.Any(x => x.Root.GetValue() == lookup))
-            //                {
-            //                    string result = crossover.FirstOrDefault(x => x.Root.GetValue() == lookup).ToString();
-            //                    await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => FoundExpression.Text = "Rezultat: " + result);
-            //                    break;
-            //                }
-            //                await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => PopulationCount.Text = "Broj jedinki nakon mutacije: " + crossover.Count + "------- ");
-            //                await Dispatcher.RunAsync(CoreDispatcherPriority.High, () => NumberOfIteration.Text = "Broj iteracije: " + i + "-------");
-            //                expressions = crossover;
-            //                Thread.Sleep(500);
-            //            }
-            //        });
-        }
-
-        private async void File_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
-        {
-            await imageMaker.SaveResultAsImage(12, "(2+3)*7=56");
-        }
-
         private async void LoadJobsButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            List<Job> jobs = new List<Job>();
-            FolderPicker openFolderPicker = new FolderPicker()
-            {
-                SuggestedStartLocation = PickerLocationId.Desktop
-            };
-            openFolderPicker.FileTypeFilter.Add(".ga");
-            StorageFolder folder = await openFolderPicker.PickSingleFolderAsync();
-            IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
-            foreach (StorageFile file in files)
-            {
-                using (Stream stream = await file.OpenStreamForReadAsync())
-                {
-                    XDocument jobConfiguration = await Task.Run(() => XDocument.Load(stream));
-                    jobs.Add(Job.InitializeFromXML(jobConfiguration));
-                }
-            }
+            await jobManager.LoadJobs();
+        }
+
+        private async void AddJobButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            ContentDialog contentDialog = new CreateJob(jobManager);
+            await contentDialog.ShowAsync();
         }
     }
 }

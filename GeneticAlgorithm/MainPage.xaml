@@ -10,6 +10,7 @@
     <Grid>
         <Viewbox>
             <StackPanel Orientation="Horizontal">
+                <Button x:Name="AddJobButton" Content="Add job" Click="AddJobButton_Click"></Button>
                 <Button x:Name="LoadJobsButton" Content="Load jobs" Foreground="Blue" Background="White" Click="LoadJobsButton_Click"></Button>
             </StackPanel>
         </Viewbox>

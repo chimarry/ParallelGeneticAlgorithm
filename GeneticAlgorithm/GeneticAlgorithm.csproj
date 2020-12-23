@@ -128,8 +128,13 @@
     <Compile Include="Controls\JobUnitControl.xaml.cs">
       <DependentUpon>JobUnitControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ImageMaker.cs" />
-    <Compile Include="Job.cs" />
+    <Compile Include="CreateJob.xaml.cs">
+      <DependentUpon>CreateJob.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Logic\IJobManager.cs" />
+    <Compile Include="Logic\ImageMaker.cs" />
+    <Compile Include="Logic\Job.cs" />
+    <Compile Include="Logic\JobManager.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -210,6 +215,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\JobUnitControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CreateJob.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
