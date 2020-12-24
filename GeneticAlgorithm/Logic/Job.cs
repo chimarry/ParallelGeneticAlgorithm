@@ -1,5 +1,4 @@
 ﻿using GeneticAlgorithm.ExpressionTree;
-using GeneticAlgorithm.Util;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,19 +9,26 @@ namespace GeneticAlgorithm.Logic
 {
     public class Job
     {
+        public delegate Task JobUICallback(string identifier, Status status);
+        public delegate Task JobUnitUICallback(string identifier, JobUnit jobUnit, Status status);
+
+        public enum Status { Pending, Started, Paused, Resumed, Cancelled, Finished }
+
         public static int MaxLevelOfParallelismPerJob = 3;
         public static int MaxLevelOfParallelism = 2;
 
         public string Id { get; set; }
 
+        public Status CurrentStatus { get; set; }
+
         public int RequestedLevelOfParallelism { get; set; }
 
         public Queue<JobUnit> PendingJobUnits { get; set; } = new Queue<JobUnit>();
 
-        public List<Task> ActiveJobUnits { get; set; } = new List<Task>();
+        public List<JobUnit> ActiveJobUnits { get; set; } = new List<JobUnit>();
 
-        public List<JobUnit> FinishedJobUnits { get; set; } = new List<JobUnit>();
-
+        public JobUICallback Callback { get; set; }
+        public JobUnitUICallback JobUnitCallback { get; set; }
 
         public bool IsFinished { get; set; }
 
@@ -32,55 +38,49 @@ namespace GeneticAlgorithm.Logic
 
         public SemaphoreSlim JobSemaphor { get; set; }
 
-        private readonly SemaphoreSlim jobUnitSemaphore;
+        private SemaphoreSlim jobUnitSemaphore;
 
-        private Job()
-        {
-
-        }
-
-        public Job(List<JobUnit> units, string identifier, int levelOfParallelism)
+        public Job(List<JobUnit> units, string identifier, int levelOfParallelism, JobUICallback jobUICallback, JobUnitUICallback jobUnitUICallback)
         {
             foreach (JobUnit unit in units)
                 PendingJobUnits.Enqueue(unit);
             Id = identifier;
-            RequestedLevelOfParallelism = levelOfParallelism;
-            int initialThreadCount = RequestedLevelOfParallelism < MaxLevelOfParallelismPerJob ? RequestedLevelOfParallelism : MaxLevelOfParallelismPerJob;
-            jobUnitSemaphore = new SemaphoreSlim(initialThreadCount, MaxLevelOfParallelismPerJob);
+            Callback = jobUICallback;
+            JobUnitCallback = jobUnitUICallback;
+            RequestedLevelOfParallelism = levelOfParallelism < MaxLevelOfParallelismPerJob ? levelOfParallelism : MaxLevelOfParallelismPerJob;
+            CurrentStatus = Status.Pending;
         }
 
-        public static Job InitializeFromXml(XDocument xmlDocument)
+        public static Job InitializeFromXml(XDocument xmlDocument, JobUICallback callback, JobUnitUICallback jobUICallback)
         {
-            Job job = new Job();
             XElement paralelism = xmlDocument.Descendants("Parallelism").First();
             XElement id = xmlDocument.Descendants("Id").First();
             IEnumerable<XElement> jobUnits = xmlDocument.Descendants("JobUnit");
+            List<JobUnit> units = new List<JobUnit>();
+
             foreach (XElement jobUnit in jobUnits)
-                job.PendingJobUnits.Enqueue(new JobUnit(jobUnit.Value, jobUnit.Attribute("name").Value));
-            job.Id = id.Value;
-            job.RequestedLevelOfParallelism = int.Parse(paralelism.Value);
-            return job;
+                units.Add(new JobUnit(jobUnit.Value, jobUnit.Attribute("name").Value));
+            return new Job(units, id.Value, int.Parse(paralelism.Value), callback, jobUICallback);
         }
 
 
         public async Task Execute()
         {
-            await JobSemaphor.WaitAsync();
-            while (PendingJobUnits.NotEmpty())
-            {
-                if (ActiveJobUnits.Count < RequestedLevelOfParallelism)
-                {
-                    JobUnit jobUnit;
-                    lock (PendingJobUnits)
-                        jobUnit = PendingJobUnits.Dequeue();
-                    Task startedTask = Task.Factory.StartNew(async () => await jobUnit.Execute());
-                    lock (ActiveJobUnits)
-                        ActiveJobUnits.Add(startedTask);
-                }
-            }
-            // Treba da zapocne svoje izvrsavanje
-            // Treba da pokrene svoje podzadatke, paralelno, na onoliko tredova koliko se specifikovano.
-            // Kada se zavrsi jedan zadatak, poziva se drugi
+            await Callback(Id, Status.Started);
+            int numberOfJobUnits = PendingJobUnits.Count;
+            jobUnitSemaphore = new SemaphoreSlim(RequestedLevelOfParallelism);
+            Parallel.For(0, numberOfJobUnits, async (i) =>
+              {
+                  await jobUnitSemaphore.WaitAsync();
+                  JobUnit jobUnit;
+                  lock (PendingJobUnits)
+                      jobUnit = PendingJobUnits.Dequeue();
+                  lock (ActiveJobUnits)
+                      ActiveJobUnits.Add(jobUnit);
+                  await JobUnitCallback(Id, jobUnit, Status.Started);
+                  jobUnit.Execute();
+                  jobUnitSemaphore.Release();
+              });
         }
 
         public async Task Pause()
@@ -105,6 +105,10 @@ namespace GeneticAlgorithm.Logic
         public class JobUnit
         {
             private readonly GeneticAlgorithmExecutor geneticAlgorithmExecutor;
+
+
+            public string JobId { get; set; }
+
             public int RequestedNumber { get; set; }
 
             public string Name { get; set; }
@@ -121,7 +125,7 @@ namespace GeneticAlgorithm.Logic
                 geneticAlgorithmExecutor = new GeneticAlgorithmExecutor(geneticAlgorithmConfiguration);
             }
 
-            public async Task Execute()
+            public void Execute()
             {
                 /*
                 * Treba da izvrsava geneticki algoritam. Treba se moci pauzirati, i treba moci nastaviti izvrsavanje.

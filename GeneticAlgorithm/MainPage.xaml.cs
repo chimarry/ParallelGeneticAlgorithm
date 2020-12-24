@@ -1,4 +1,5 @@
-﻿using GeneticAlgorithm.ExpressionTree;
+﻿using GeneticAlgorithm.Controls;
+using GeneticAlgorithm.ExpressionTree;
 using GeneticAlgorithm.Logic;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
+using static GeneticAlgorithm.Logic.Job;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -22,11 +24,12 @@ namespace GeneticAlgorithm
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private readonly IJobManager jobManager = new JobManager();
+        private readonly JobManager jobManager;
 
         public MainPage()
         {
             this.InitializeComponent();
+            jobManager = new JobManager(UpdateJobControl, UpdateJobUnitControl);
         }
 
         private async void LoadJobsButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -40,24 +43,36 @@ namespace GeneticAlgorithm
             await contentDialog.ShowAsync();
         }
 
-        private void Test_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void CancelButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            SemaphoreSlim semaphoreSlim = new SemaphoreSlim(2);
-            Parallel.For(0, 20, async i =>
+            // Otkazi sve taskove
+        }
+
+        private void PauseButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            // Paralelno pauziraj sve taskove koji se izvrsavaju
+        }
+
+        private void StartButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            foreach (Job job in jobManager.PendingJobs)
+                JobsStackPanel.Children.Add(new JobControl(job));
+            jobManager.StartJobs();
+        }
+
+        public async Task UpdateJobControl(string identifier, Status jobStatus)
+        {
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+             {
+                 await ((JobControl)JobsStackPanel.Children.First(x => x.GetHashCode() == identifier.GetHashCode())).UpdateStatus(jobStatus);
+             });
+        }
+
+        public async Task UpdateJobUnitControl(string identifier, JobUnit jobUnit, Status jobStatus)
+        {
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
             {
-                await semaphoreSlim.WaitAsync();
-                await Dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
-                {
-                    lock (Block)
-                        Block.Children.Add(new TextBlock() { Text = i.ToString() });
-                });
-                Thread.Sleep(new Random().Next(200, 5000));
-                await Dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
-                {
-                    lock (Block)
-                        Block.Children.Remove(Block.Children.Select(x => x as TextBlock).First(x => x.Text == i.ToString()));
-                });
-                semaphoreSlim.Release();
+                await ((JobControl)JobsStackPanel.Children.First(x => x.GetHashCode() == identifier.GetHashCode())).UpdateJobUnit(jobUnit, jobStatus);
             });
         }
     }

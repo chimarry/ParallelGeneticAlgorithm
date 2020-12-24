@@ -14,9 +14,9 @@ namespace GeneticAlgorithm
         private const int requestedNumberIndex = 0;
         private const int nameIndex = 1;
 
-        private readonly IJobManager jobManager;
+        private readonly JobManager jobManager;
 
-        public CreateJob(IJobManager jobManager)
+        public CreateJob(JobManager jobManager)
         {
             this.InitializeComponent();
             for (int i = 0; i < 20; ++i)
@@ -32,7 +32,7 @@ namespace GeneticAlgorithm
                 jobUnits.Add(new JobUnit(unit.Split(attributeSeparator)[requestedNumberIndex], unit.Split(attributeSeparator)[nameIndex]));
             string identifier = Identifier.Text;
             int parallelism = (int)Parallelism.SelectedValue;
-            jobManager.ScheduleJob(new Job(jobUnits, identifier, parallelism));
+           // jobManager.ScheduleJob(new Job(jobUnits, identifier, parallelism));
         }
     }
 }

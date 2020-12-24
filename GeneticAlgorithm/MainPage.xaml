@@ -8,14 +8,41 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Grid>
-        <Viewbox>
-            <StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Button x:Name="AddJobButton" Content="Add job" Click="AddJobButton_Click"></Button>
-                    <Button x:Name="LoadJobsButton" Content="Load jobs" Foreground="Blue" Background="White" Click="LoadJobsButton_Click"></Button>
-                    <Button x:Name="Test" Content="Test" Click="Test_Click"></Button>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.1*"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <ScrollViewer VerticalScrollBarVisibility="Visible" Grid.Column="0">
+            <ListView BorderBrush="LightBlue" BorderThickness="2" Margin="10 10 10 10">
+                <ListViewItem FontSize="10" Height="10">Posao 1</ListViewItem>
+                <ListViewItem FontSize="10" Height="10">Posao 1</ListViewItem>
+                <ListViewItem FontSize="10">Posao 1</ListViewItem>
+                <ListViewItem FontSize="10" Height="10">Posao 1</ListViewItem>
+                <ListViewItem FontSize="10" Height="10">Posao 1</ListViewItem>
+                <ListViewItem FontSize="10">Posao 1</ListViewItem>
+            </ListView>
+        </ScrollViewer>
+        <Viewbox Grid.Column="1" VerticalAlignment="Top">
+            <StackPanel Orientation="Vertical" VerticalAlignment="Top">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+                    <Button x:Name="LoadJobsButton" Background="LightBlue" Margin="10" CornerRadius="10" Click="LoadJobsButton_Click">
+                        <SymbolIcon Symbol="ImportAll" Foreground="White"></SymbolIcon>
+                    </Button>
+                    <Button x:Name="AddJobButton" Margin="10 10 50 10" Background="LightBlue" CornerRadius="10" Click="AddJobButton_Click">
+                        <SymbolIcon Symbol="Import" Foreground="White"/>
+                    </Button>
+                    <Button x:Name="StartButton" Margin="10" Background="LightGreen" CornerRadius="10" Click="StartButton_Click">
+                        <SymbolIcon Symbol="Play" Foreground="White"/>
+                    </Button>
+                    <Button x:Name="PauseButton" Background="Gray" Margin="10" CornerRadius="10" Click="PauseButton_Click">
+                        <SymbolIcon Symbol="Pause" Foreground="White"/>
+                    </Button>
+                    <Button x:Name="CancelButton" Background="IndianRed" Margin="10" CornerRadius="10" Click="CancelButton_Click">
+                        <SymbolIcon Symbol="Cancel" Foreground="White"/>
+                    </Button>
                 </StackPanel>
-                <StackPanel Orientation="Vertical" x:Name="Block">
+                <Rectangle HorizontalAlignment="Stretch" Fill="LightBlue" Height="2" Margin="10 0 10 10"/>
+                <StackPanel Orientation="Horizontal" x:Name="JobsStackPanel">
                 </StackPanel>
             </StackPanel>
         </Viewbox>

@@ -8,17 +8,9 @@
     mc:Ignorable="d">
     <Viewbox MaxHeight="150" MaxWidth="100">
         <StackPanel Background="White" BorderBrush="LightBlue" BorderThickness="3">
-            <ProgressBar x:Name="JobProgressBar" IsIndeterminate="True"></ProgressBar>
-            <Grid x:Name="JobUnitGrid">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-            </Grid>
+            <TextBlock x:Name="Status">Pending...</TextBlock>
+            <StackPanel x:Name="JobUnitStackPanel">
+            </StackPanel>
         </StackPanel>
     </Viewbox>
 </UserControl>

@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
+using System.Threading.Tasks;
+using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
+using static GeneticAlgorithm.Logic.Job;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -19,9 +10,27 @@ namespace GeneticAlgorithm.Controls
 {
     public sealed partial class JobUnitControl : UserControl
     {
-        public JobUnitControl()
+        public JobUnit JobUnit { get; set; }
+
+        public JobUnitControl(JobUnit jobUnit)
         {
             this.InitializeComponent();
+            JobUnit = jobUnit;
+        }
+
+        public async Task UpdateStatus(Status status)
+        {
+            await Dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
+            {
+                JobUnitStatus.Text = status.ToString();
+                switch (status)
+                {
+                    case Status.Started:
+                    case Status.Resumed:
+                        JobUnitProgressRing.IsActive = true; break;
+                    default: JobUnitProgressRing.IsActive = false; break;
+                }
+            });
         }
     }
 }
