@@ -14,8 +14,8 @@ namespace GeneticAlgorithm.Logic
 
         public enum Status { Pending, Started, Paused, Resumed, Cancelled, Finished }
 
-        public static int MaxLevelOfParallelismPerJob = 3;
-        public static int MaxLevelOfParallelism = 2;
+        public const int MaxLevelOfParallelismPerJob = 3;
+        public const int MaxLevelOfParallelism = 2;
 
         public string Id { get; set; }
 
@@ -28,6 +28,7 @@ namespace GeneticAlgorithm.Logic
         public List<JobUnit> ActiveJobUnits { get; set; } = new List<JobUnit>();
 
         public JobUICallback Callback { get; set; }
+
         public JobUnitUICallback JobUnitCallback { get; set; }
 
         public bool IsFinished { get; set; }
@@ -69,18 +70,24 @@ namespace GeneticAlgorithm.Logic
             await Callback(Id, Status.Started);
             int numberOfJobUnits = PendingJobUnits.Count;
             jobUnitSemaphore = new SemaphoreSlim(RequestedLevelOfParallelism);
-            Parallel.For(0, numberOfJobUnits, async (i) =>
-              {
-                  await jobUnitSemaphore.WaitAsync();
-                  JobUnit jobUnit;
-                  lock (PendingJobUnits)
-                      jobUnit = PendingJobUnits.Dequeue();
-                  lock (ActiveJobUnits)
-                      ActiveJobUnits.Add(jobUnit);
-                  await JobUnitCallback(Id, jobUnit, Status.Started);
-                  jobUnit.Execute();
-                  jobUnitSemaphore.Release();
-              });
+            List<Task> executionTasks = Enumerable.Range(0, numberOfJobUnits)
+                                                  .Select(x => Task.Run(async () =>
+                                                                     {
+                                                                         await jobUnitSemaphore.WaitAsync();
+                                                                         JobUnit jobUnit;
+                                                                         lock (PendingJobUnits)
+                                                                             jobUnit = PendingJobUnits.Dequeue();
+                                                                         lock (ActiveJobUnits)
+                                                                             ActiveJobUnits.Add(jobUnit);
+                                                                         await JobUnitCallback(Id, jobUnit, Status.Started);
+                                                                         string result = jobUnit.Execute();
+                                                                         lock (ActiveJobUnits)
+                                                                             ActiveJobUnits.Remove(jobUnit);
+                                                                         await JobUnitCallback(Id, jobUnit, Status.Finished);
+                                                                         jobUnitSemaphore.Release();
+                                                                     })).ToList();
+            await Task.WhenAll(executionTasks);
+            await Callback(Id, Status.Finished);
         }
 
         public async Task Pause()
@@ -125,7 +132,7 @@ namespace GeneticAlgorithm.Logic
                 geneticAlgorithmExecutor = new GeneticAlgorithmExecutor(geneticAlgorithmConfiguration);
             }
 
-            public void Execute()
+            public string Execute()
             {
                 /*
                 * Treba da izvrsava geneticki algoritam. Treba se moci pauzirati, i treba moci nastaviti izvrsavanje.
@@ -133,6 +140,7 @@ namespace GeneticAlgorithm.Logic
                 * Treba da azurira UI shodno datim aktivnostima.
                 */
                 MathExpressionTree tree = geneticAlgorithmExecutor.Execute();
+                return tree?.ToString();
             }
         }
     }

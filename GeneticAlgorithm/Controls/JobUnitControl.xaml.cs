@@ -16,6 +16,7 @@ namespace GeneticAlgorithm.Controls
         {
             this.InitializeComponent();
             JobUnit = jobUnit;
+            JobUnitName.Text = JobUnit.Name;
         }
 
         public async Task UpdateStatus(Status status)

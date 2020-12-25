@@ -35,6 +35,13 @@ namespace GeneticAlgorithm
         private async void LoadJobsButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             await jobManager.LoadJobs();
+            jobManager.PendingJobs
+                      .Select(x => x.Id)
+                      .ToList()
+                      .ForEach(job => PendingJobList.Items.Add(new TextBlock()
+                      {
+                          Text = job
+                      }));
         }
 
         private async void AddJobButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -64,6 +71,12 @@ namespace GeneticAlgorithm
         {
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
              {
+                 if (jobStatus == Status.Started)
+                     lock (PendingJobList)
+                         PendingJobList.Items
+                                       .Remove(PendingJobList.Items
+                                                             .Select(x => x as TextBlock)
+                                                             .First(x => x.Text == identifier));
                  await ((JobControl)JobsStackPanel.Children.First(x => x.GetHashCode() == identifier.GetHashCode())).UpdateStatus(jobStatus);
              });
         }

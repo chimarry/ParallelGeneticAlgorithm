@@ -29,6 +29,7 @@ namespace GeneticAlgorithm.Controls
             this.InitializeComponent();
             Job = job;
             Status.Text = job.CurrentStatus.ToString();
+            JobName.Text = Job.Id;
             AddJobUnits();
         }
 
@@ -57,7 +58,10 @@ namespace GeneticAlgorithm.Controls
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.High, async () =>
              {
-                 await JobUnitStackPanel.Children.Select(x => x as JobUnitControl).First(x => x.JobUnit.Name == jobUnit.Name).UpdateStatus(status);
+                 await JobUnitStackPanel.Children
+                                        .Select(x => x as JobUnitControl)
+                                        .First(x => x.JobUnit.Name == jobUnit.Name)
+                                        .UpdateStatus(status);
              });
         }
         // Method for update

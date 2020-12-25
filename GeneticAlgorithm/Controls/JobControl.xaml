@@ -7,8 +7,10 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <Viewbox MaxHeight="150" MaxWidth="100">
-        <StackPanel Background="White" BorderBrush="LightBlue" BorderThickness="3">
-            <TextBlock x:Name="Status">Pending...</TextBlock>
+        <StackPanel Background="White" BorderBrush="LightBlue" BorderThickness="3" Margin="10 10 10 10">
+            <TextBlock x:Name="JobName" Foreground="LightBlue"></TextBlock>
+            <TextBlock x:Name="Status" Foreground="Red">Pending...</TextBlock>
+            <Rectangle HorizontalAlignment="Stretch" Fill="LightBlue" Height="1" Margin="1 1 1 1"/>
             <StackPanel x:Name="JobUnitStackPanel">
             </StackPanel>
         </StackPanel>

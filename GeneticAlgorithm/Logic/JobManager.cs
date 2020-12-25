@@ -20,7 +20,7 @@ namespace GeneticAlgorithm.Logic
 
         private readonly ImageMaker imageMaker = new ImageMaker();
 
-        private readonly SemaphoreSlim jobSemaphore = new SemaphoreSlim(Job.MaxLevelOfParallelism, Job.MaxLevelOfParallelism);
+        private readonly SemaphoreSlim jobSemaphore = new SemaphoreSlim(Job.MaxLevelOfParallelism);
 
         private readonly JobCallback callback;
 
@@ -65,16 +65,18 @@ namespace GeneticAlgorithm.Logic
         {
             int numberOfJobs = PendingJobs.Count;
             Parallel.For(0, numberOfJobs, async (i) =>
-                 {
-                     await jobSemaphore.WaitAsync();
-                     Job currentJob;
-                     lock (PendingJobs)
-                         currentJob = PendingJobs.Dequeue();
-                     lock (ExecutingJobs)
-                         ExecutingJobs.Add(currentJob);
-                     await currentJob.Execute();
-                     jobSemaphore.Release();
-                 });
+                  {
+                      await jobSemaphore.WaitAsync();
+                      Job currentJob;
+                      lock (PendingJobs)
+                          currentJob = PendingJobs.Dequeue();
+                      lock (ExecutingJobs)
+                          ExecutingJobs.Add(currentJob);
+                      await currentJob.Execute();
+                      lock (ExecutingJobs)
+                          ExecutingJobs.Remove(currentJob);
+                      jobSemaphore.Release();
+                  });
         }
 
         public Task PauseJobs()

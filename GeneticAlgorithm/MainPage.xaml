@@ -13,13 +13,7 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <ScrollViewer VerticalScrollBarVisibility="Visible" Grid.Column="0">
-            <ListView BorderBrush="LightBlue" BorderThickness="2" Margin="10 10 10 10">
-                <ListViewItem FontSize="10" Height="10">Posao 1</ListViewItem>
-                <ListViewItem FontSize="10" Height="10">Posao 1</ListViewItem>
-                <ListViewItem FontSize="10">Posao 1</ListViewItem>
-                <ListViewItem FontSize="10" Height="10">Posao 1</ListViewItem>
-                <ListViewItem FontSize="10" Height="10">Posao 1</ListViewItem>
-                <ListViewItem FontSize="10">Posao 1</ListViewItem>
+            <ListView x:Name="PendingJobList" BorderBrush="LightBlue" BorderThickness="2" Margin="10 10 10 10">
             </ListView>
         </ScrollViewer>
         <Viewbox Grid.Column="1" VerticalAlignment="Top">
