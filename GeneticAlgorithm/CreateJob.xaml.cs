@@ -1,6 +1,7 @@
 ﻿using GeneticAlgorithm.Logic;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
@@ -33,24 +34,22 @@ namespace GeneticAlgorithm
 
         private async void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            try
+            Regex createJobUnits = new Regex(@"^((\d)+-(\w)+\;)+$");
+            Match match = createJobUnits.Match(JobUnits.Text);
+            if (match.Success)
             {
-                Regex createJobUnits = new Regex(@"^((\d)+-(\w)+\;)+$");
-                Match match = createJobUnits.Match(JobUnits.Text);
-                if (!match.Success)
-                    throw new Exception(ExceptionContentDialog.InvalidDataForJob);
                 string[] jobUnitStrings = JobUnits.Text.Split(jobUnitSeparator);
                 List<JobUnit> jobUnits = new List<JobUnit>();
-                foreach (string unit in jobUnitStrings)
-                    jobUnits.Add(new JobUnit(unit.Split(attributeSeparator)[requestedNumberIndex], unit.Split(attributeSeparator)[nameIndex]));
+                for (int i = 0; i < jobUnitStrings.Length - 1; ++i)
+                {
+                    string number = jobUnitStrings[i].Split(attributeSeparator)[requestedNumberIndex];
+                    string name = jobUnitStrings[i].Split(attributeSeparator)[nameIndex];
+                    jobUnits.Add(new JobUnit(number, name));
+                }
                 string identifier = Identifier.Text;
                 int parallelism = (int)Parallelism.SelectedValue;
                 Job job = new Job(jobUnits, identifier, parallelism, jobControlCallback, jobUnitControlCallback);
                 await addJob.Invoke(job);
-            }
-            catch (Exception e)
-            {
-                await new ExceptionContentDialog(e.Message).ShowAsync();
             }
         }
     }
