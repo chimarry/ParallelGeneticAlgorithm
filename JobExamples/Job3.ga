@@ -1,0 +1,8 @@
+<Job>
+	<Id>Posao4</Id>
+	<Parallelism>2</Parallelism>
+	<JobUnit name="Osmi">213</JobUnit>
+	<JobUnit name="Deveti">39</JobUnit>
+	<JobUnit name="Deseti">4</JobUnit>
+	<JobUnit name="Jedanaesti">8086</JobUnit>
+</Job>

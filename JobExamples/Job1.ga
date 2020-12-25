@@ -1,0 +1,8 @@
+<Job>
+	<Id>Posao1</Id>
+	<Parallelism>3</Parallelism>
+	<JobUnit name="Prvi">23</JobUnit>
+	<JobUnit name="Drugi">2134</JobUnit>
+	<JobUnit name="Treci">11</JobUnit>
+	<JobUnit name="Cetvrti">89</JobUnit>
+</Job>
