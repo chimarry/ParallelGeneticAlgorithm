@@ -184,6 +184,8 @@ namespace GeneticAlgorithm.Logic
 
             private SemaphoreSlim pauseSemaphore = new SemaphoreSlim(1);
 
+            public int[] DefaultOperands = new int[] { 10, 1, 28, 3, 14, 80 };
+
             public JobUnit(string number, string name)
             {
                 RequestedNumber = int.Parse(number);
@@ -193,10 +195,9 @@ namespace GeneticAlgorithm.Logic
             public async Task<(string, string)> Execute(CancellationTokenSource cancellationTokenSource)
             {
                 this.CancellationTokenSource = cancellationTokenSource;
-                ThreadSafeRandom threadSafeRandom = new ThreadSafeRandom();
                 GeneticAlgorithmConfiguration geneticAlgorithmConfiguration = new GeneticAlgorithmConfiguration(RequestedNumber)
                 {
-                    Operands = new int[] { 10, 1, 28, 3, 14, 80 }
+                    Operands = DefaultOperands
                 };
                 geneticAlgorithmExecutor = new GeneticAlgorithmExecutor(geneticAlgorithmConfiguration, this.CancellationTokenSource.Token, pauseSemaphore);
                 MathExpressionTree tree = await geneticAlgorithmExecutor.Execute();
