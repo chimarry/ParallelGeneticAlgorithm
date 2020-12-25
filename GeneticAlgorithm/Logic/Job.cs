@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace GeneticAlgorithm.Logic
@@ -63,16 +64,29 @@ namespace GeneticAlgorithm.Logic
             CurrentStatus = Status.Pending;
         }
 
+        /// <summary>
+        /// Creates job using configuration specified in  XML document.
+        /// </summary>
+        /// <param name="xmlDocument">Configuration file</param>
+        /// <returns>Created job</returns>
+        /// <exception cref="XmlException"></exception>
         public static Job InitializeFromXml(XDocument xmlDocument, JobUICallback callback, JobUnitUICallback jobUICallback)
         {
-            XElement paralelism = xmlDocument.Descendants("Parallelism").First();
-            XElement id = xmlDocument.Descendants("Id").First();
-            IEnumerable<XElement> jobUnits = xmlDocument.Descendants("JobUnit");
-            List<JobUnit> units = new List<JobUnit>();
+            try
+            {
+                XElement paralelism = xmlDocument.Descendants("Parallelism").First();
+                XElement id = xmlDocument.Descendants("Id").First();
+                IEnumerable<XElement> jobUnits = xmlDocument.Descendants("JobUnit");
+                List<JobUnit> units = new List<JobUnit>();
 
-            foreach (XElement jobUnit in jobUnits)
-                units.Add(new JobUnit(jobUnit.Value, jobUnit.Attribute("name").Value));
-            return new Job(units, id.Value, int.Parse(paralelism.Value), callback, jobUICallback);
+                foreach (XElement jobUnit in jobUnits)
+                    units.Add(new JobUnit(jobUnit.Value, jobUnit.Attribute("name").Value));
+                return new Job(units, id.Value, int.Parse(paralelism.Value), callback, jobUICallback);
+            }
+            catch (XmlException)
+            {
+                throw;
+            }
         }
 
         public async Task Execute(ImageMaker imageMaker)

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -44,6 +45,9 @@ namespace GeneticAlgorithm.Logic
                     PendingJobs.Enqueue(job);
         }
 
+        /// <summary>
+        /// Loads jobs from xml files.
+        /// </summary>
         public async Task LoadJobs()
         {
             FolderPicker openFolderPicker = new FolderPicker()
@@ -52,7 +56,7 @@ namespace GeneticAlgorithm.Logic
             };
             openFolderPicker.FileTypeFilter.Add(".ga");
             StorageFolder folder = await openFolderPicker.PickSingleFolderAsync();
-            IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
+            IReadOnlyList<StorageFile> files = await folder?.GetFilesAsync() ?? new List<StorageFile>();
             foreach (StorageFile file in files)
             {
                 Job job = await ParseJobFromFile(file);
@@ -60,6 +64,12 @@ namespace GeneticAlgorithm.Logic
             }
         }
 
+        /// <summary>
+        /// Creates job using configuration specified in file.
+        /// </summary>
+        /// <param name="file">Configuration file</param>
+        /// <returns>Created job</returns>
+        /// <exception cref="XmlException"></exception>
         public async Task<Job> ParseJobFromFile(StorageFile file)
         {
             using (Stream stream = await file.OpenStreamForReadAsync())

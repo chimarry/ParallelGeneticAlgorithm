@@ -22,8 +22,8 @@ namespace GeneticAlgorithm.Logic
 
         public async Task SaveResultAsImage(string jobId, string jobUnitName, string expression)
         {
-            // await LoadFolder();
-            await DrawAndSaveImage(jobId, jobUnitName, expression);
+            if (await LoadFolder())
+                await DrawAndSaveImage(jobId, jobUnitName, expression);
         }
 
         private async Task DrawAndSaveImage(string jobId, string jobUnitName, string expression)
@@ -43,14 +43,14 @@ namespace GeneticAlgorithm.Logic
                 session.DrawImage(image);
                 session.DrawText(expression, new System.Numerics.Vector2(textLocation.x, textLocation.y), Colors.Black);
             }
-            StorageFile file = await folder.CreateFileAsync($"GeneticAlgorithm_{jobId}_{jobUnitName}.jpg",CreationCollisionOption.ReplaceExisting);
+            StorageFile file = await folder.CreateFileAsync($"GeneticAlgorithm_{jobId}_{jobUnitName}.jpg", CreationCollisionOption.ReplaceExisting);
             using (IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
             {
                 await renderTarget.SaveAsync(fileStream, CanvasBitmapFileFormat.Png, 1f);
             }
         }
 
-        public async Task LoadFolder()
+        public async Task<bool> LoadFolder()
         {
             if (folder == null)
             {
@@ -60,7 +60,9 @@ namespace GeneticAlgorithm.Logic
                 };
                 openFolderPicker.FileTypeFilter.Add("*");
                 folder = await openFolderPicker.PickSingleFolderAsync();
+                return folder != null;
             }
+            return true;
         }
     }
 }

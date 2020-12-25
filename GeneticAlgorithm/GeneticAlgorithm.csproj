@@ -131,6 +131,9 @@
     <Compile Include="CreateJob.xaml.cs">
       <DependentUpon>CreateJob.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ExceptionContentDialog.xaml.cs">
+      <DependentUpon>ExceptionContentDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Logic\ImageMaker.cs" />
     <Compile Include="Logic\Job.cs" />
     <Compile Include="Logic\JobManager.cs" />
@@ -220,6 +223,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="CreateJob.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ExceptionContentDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

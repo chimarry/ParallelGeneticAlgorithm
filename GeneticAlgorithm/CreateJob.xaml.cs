@@ -1,6 +1,7 @@
 ﻿using GeneticAlgorithm.Logic;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
 using static GeneticAlgorithm.Logic.Job;
@@ -32,14 +33,25 @@ namespace GeneticAlgorithm
 
         private async void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            string[] jobUnitStrings = JobUnits.Text.Split(jobUnitSeparator);
-            List<JobUnit> jobUnits = new List<JobUnit>();
-            foreach (string unit in jobUnitStrings)
-                jobUnits.Add(new JobUnit(unit.Split(attributeSeparator)[requestedNumberIndex], unit.Split(attributeSeparator)[nameIndex]));
-            string identifier = Identifier.Text;
-            int parallelism = (int)Parallelism.SelectedValue;
-            Job job = new Job(jobUnits, identifier, parallelism, jobControlCallback, jobUnitControlCallback);
-            await addJob.Invoke(job);
+            try
+            {
+                Regex createJobUnits = new Regex(@"^((\d)+-(\w)+\;)+$");
+                Match match = createJobUnits.Match(JobUnits.Text);
+                if (!match.Success)
+                    throw new Exception(ExceptionContentDialog.InvalidDataForJob);
+                string[] jobUnitStrings = JobUnits.Text.Split(jobUnitSeparator);
+                List<JobUnit> jobUnits = new List<JobUnit>();
+                foreach (string unit in jobUnitStrings)
+                    jobUnits.Add(new JobUnit(unit.Split(attributeSeparator)[requestedNumberIndex], unit.Split(attributeSeparator)[nameIndex]));
+                string identifier = Identifier.Text;
+                int parallelism = (int)Parallelism.SelectedValue;
+                Job job = new Job(jobUnits, identifier, parallelism, jobControlCallback, jobUnitControlCallback);
+                await addJob.Invoke(job);
+            }
+            catch (Exception e)
+            {
+                await new ExceptionContentDialog(e.Message).ShowAsync();
+            }
         }
     }
 }

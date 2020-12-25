@@ -4,6 +4,7 @@ using GeneticAlgorithm.Util;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
 using Windows.ApplicationModel.Activation;
 using Windows.Storage;
 using Windows.UI.Core;
@@ -72,18 +73,33 @@ namespace GeneticAlgorithm
 
         private async void LoadJobsButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            await jobManager.LoadJobs();
-            jobManager.PendingJobs
-                      .ToList()
-                      .ForEach(job => AddToList(job));
-            if (jobManager.ScheduledJobs.NotEmpty())
+            try
             {
-                foreach (Job job in jobManager.PendingJobs)
-                    JobsStackPanel.Children.Add(new JobControl(job));
-                jobManager.StartJobs();
+                await jobManager.LoadJobs();
+                jobManager.PendingJobs
+                          .ToList()
+                          .ForEach(job => AddToList(job));
+                if (jobManager.ScheduledJobs.NotEmpty())
+                {
+                    foreach (Job job in jobManager.PendingJobs)
+                        JobsStackPanel.Children.Add(new JobControl(job));
+                    jobManager.StartJobs();
+                }
+                else
+                    StartButton.IsEnabled = true;
             }
-            else
-                StartButton.IsEnabled = true;
+            catch (XmlException)
+            {
+                await new ExceptionContentDialog(ExceptionContentDialog.InvalidFormatForJob).ShowAsync();
+            }
+            catch (ArgumentNullException)
+            {
+                StartButton.IsEnabled = false;
+            }
+            catch (Exception)
+            {
+                await new ExceptionContentDialog().ShowAsync();
+            }
         }
 
         private async void AddJobButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -121,8 +137,14 @@ namespace GeneticAlgorithm
             }
             else
             {
+                bool folderChoosen = await imageMaker.LoadFolder();
+                if (!folderChoosen)
+                {
+                    await new ExceptionContentDialog("Folder for result images must be specified").ShowAsync();
+                    StartButton.IsEnabled = true;
+                    return;
+                }
                 isStarted = true;
-                await imageMaker.LoadFolder();
                 foreach (Job job in jobManager.PendingJobs)
                     JobsStackPanel.Children.Add(new JobControl(job));
                 jobManager.StartJobs();
