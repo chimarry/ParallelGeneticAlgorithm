@@ -71,7 +71,6 @@ namespace GeneticAlgorithm.Logic
             return new Job(units, id.Value, int.Parse(paralelism.Value), callback, jobUICallback);
         }
 
-
         public async Task Execute(ImageMaker imageMaker)
         {
             if (IsCancelled)

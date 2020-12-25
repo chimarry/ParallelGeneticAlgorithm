@@ -21,13 +21,13 @@ namespace GeneticAlgorithm.Logic
 
         public ImageMaker ImageMaker { get; set; }
 
+        public bool Cancelled { get; set; }
+
         private readonly SemaphoreSlim jobSemaphore = new SemaphoreSlim(Job.MaxLevelOfParallelism);
 
-        private readonly JobCallback callback;
+        private JobCallback callback;
 
-        private readonly JobUnitCallback jobUnitCallback;
-
-        public bool Cancelled { get; set; }
+        private JobUnitCallback jobUnitCallback;
 
         public JobManager(JobCallback callback, JobUnitCallback jobUnitCallback)
         {
@@ -35,15 +35,13 @@ namespace GeneticAlgorithm.Logic
             this.jobUnitCallback = jobUnitCallback;
         }
 
-
-        public void ScheduleJob(Job job)
+        public void AddJob(Job job)
         {
-            (job.Callback, job.JobUnitCallback) = (UpdateJobUI, UpdateJobUnitUI);
-            lock (PendingJobs)
-                PendingJobs.Enqueue(job);
+            if (!PendingJobs.Contains(job))
+                lock (PendingJobs)
+                    PendingJobs.Enqueue(job);
         }
 
-        // TODO: Catch exceptions
         public async Task LoadJobs()
         {
             FolderPicker openFolderPicker = new FolderPicker()
@@ -58,9 +56,26 @@ namespace GeneticAlgorithm.Logic
                 using (Stream stream = await file.OpenStreamForReadAsync())
                 {
                     XDocument jobConfiguration = XDocument.Load(stream);
-                    lock (PendingJobs)
-                        PendingJobs.Enqueue(Job.InitializeFromXml(jobConfiguration, UpdateJobUI, UpdateJobUnitUI));
+                    AddJob(Job.InitializeFromXml(jobConfiguration, UpdateJobUI, UpdateJobUnitUI));
                 }
+            }
+        }
+
+        public async Task StartJob()
+        {
+            await jobSemaphore.WaitAsync();
+            Job currentJob;
+            if (PendingJobs.NotEmpty())
+            {
+                lock (PendingJobs)
+                    currentJob = PendingJobs.Dequeue();
+                lock (ExecutingJobs)
+                    ExecutingJobs.Add(currentJob);
+                await currentJob.Execute(ImageMaker);
+                if (!Cancelled)
+                    lock (ExecutingJobs)
+                        ExecutingJobs.Remove(currentJob);
+                jobSemaphore.Release();
             }
         }
 
@@ -69,20 +84,21 @@ namespace GeneticAlgorithm.Logic
             int numberOfJobs = PendingJobs.Count;
             Parallel.For(0, numberOfJobs, async (i) =>
                   {
-                      await jobSemaphore.WaitAsync();
-                      Job currentJob;
-                      if (PendingJobs.NotEmpty())
-                      {
-                          lock (PendingJobs)
-                              currentJob = PendingJobs.Dequeue();
-                          lock (ExecutingJobs)
-                              ExecutingJobs.Add(currentJob);
-                          await currentJob.Execute(ImageMaker);
-                          if (!Cancelled)
-                              lock (ExecutingJobs)
-                                  ExecutingJobs.Remove(currentJob);
-                          jobSemaphore.Release();
-                      }
+                      await StartJob();
+                      /* await jobSemaphore.WaitAsync();
+                       Job currentJob;
+                       if (PendingJobs.NotEmpty())
+                       {
+                           lock (PendingJobs)
+                               currentJob = PendingJobs.Dequeue();
+                           lock (ExecutingJobs)
+                               ExecutingJobs.Add(currentJob);
+                           await currentJob.Execute(ImageMaker);
+                           if (!Cancelled)
+                               lock (ExecutingJobs)
+                                   ExecutingJobs.Remove(currentJob);
+                           jobSemaphore.Release();
+                  }*/
                   });
         }
 

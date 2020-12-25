@@ -1,16 +1,8 @@
 ﻿using GeneticAlgorithm.Controls;
-using GeneticAlgorithm.ExpressionTree;
 using GeneticAlgorithm.Logic;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using Windows.Storage;
-using Windows.Storage.Pickers;
-using Windows.Storage.Streams;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
 using static GeneticAlgorithm.Logic.Job;
@@ -28,6 +20,7 @@ namespace GeneticAlgorithm
         private readonly ImageMaker imageMaker;
 
         private bool isPaused = false;
+        private bool isStarted = false;
 
         public MainPage()
         {
@@ -40,22 +33,42 @@ namespace GeneticAlgorithm
             StartButton.IsEnabled = PauseButton.IsEnabled = CancelButton.IsEnabled = false;
         }
 
+        public async Task AddJob(Job job)
+        {
+            AddToList(job);
+            jobManager.AddJob(job);
+
+            // If start button is already pressed
+            if (isStarted)
+            {
+                JobsStackPanel.Children.Add(new JobControl(job));
+                await jobManager.StartJob();
+            }
+            else
+                StartButton.IsEnabled = true;
+        }
+
+        private void AddToList(Job job)
+        {
+            if (!PendingJobList.Items.Select(x => x as TextBlock).Any(x => x.Text == job.Id))
+                PendingJobList.Items.Add(new TextBlock()
+                {
+                    Text = job.Id
+                });
+        }
+
         private async void LoadJobsButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             await jobManager.LoadJobs();
             jobManager.PendingJobs
-                      .Select(x => x.Id)
                       .ToList()
-                      .ForEach(job => PendingJobList.Items.Add(new TextBlock()
-                      {
-                          Text = job
-                      }));
+                      .ForEach(job => AddToList(job));
             StartButton.IsEnabled = true;
         }
 
         private async void AddJobButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            ContentDialog contentDialog = new CreateJob(jobManager);
+            ContentDialog contentDialog = new CreateJob(UpdateJobUnitControl, UpdateJobControl, AddJob);
             await contentDialog.ShowAsync();
         }
 
@@ -86,6 +99,7 @@ namespace GeneticAlgorithm
             }
             else
             {
+                isStarted = true;
                 await imageMaker.LoadFolder();
                 foreach (Job job in jobManager.PendingJobs)
                     JobsStackPanel.Children.Add(new JobControl(job));

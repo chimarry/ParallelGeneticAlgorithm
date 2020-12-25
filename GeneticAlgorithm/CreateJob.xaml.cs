@@ -1,5 +1,7 @@
 ﻿using GeneticAlgorithm.Logic;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
 using static GeneticAlgorithm.Logic.Job;
 
@@ -14,17 +16,21 @@ namespace GeneticAlgorithm
         private const int requestedNumberIndex = 0;
         private const int nameIndex = 1;
 
-        private readonly JobManager jobManager;
+        private readonly Job.JobUnitUICallback jobUnitControlCallback;
+        private readonly Job.JobUICallback jobControlCallback;
+        private readonly Func<Job, Task> addJob;
 
-        public CreateJob(JobManager jobManager)
+        public CreateJob(Job.JobUnitUICallback jobUnitControlCallback, Job.JobUICallback jobControlCallback, Func<Job, Task> addJob)
         {
             this.InitializeComponent();
             for (int i = 0; i < 20; ++i)
                 Parallelism.Items.Add(i);
-            this.jobManager = jobManager;
+            this.jobControlCallback = jobControlCallback;
+            this.jobUnitControlCallback = jobUnitControlCallback;
+            this.addJob = addJob;
         }
 
-        private void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        private async void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
             string[] jobUnitStrings = JobUnits.Text.Split(jobUnitSeparator);
             List<JobUnit> jobUnits = new List<JobUnit>();
@@ -32,7 +38,8 @@ namespace GeneticAlgorithm
                 jobUnits.Add(new JobUnit(unit.Split(attributeSeparator)[requestedNumberIndex], unit.Split(attributeSeparator)[nameIndex]));
             string identifier = Identifier.Text;
             int parallelism = (int)Parallelism.SelectedValue;
-           // jobManager.ScheduleJob(new Job(jobUnits, identifier, parallelism));
+            Job job = new Job(jobUnits, identifier, parallelism, jobControlCallback, jobUnitControlCallback);
+            await addJob.Invoke(job);
         }
     }
 }

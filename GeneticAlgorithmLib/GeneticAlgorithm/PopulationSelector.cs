@@ -82,15 +82,17 @@ namespace GeneticAlgorithm
             individualsWithFitnessRatio = individualsWithFitnessRatio.Skip(eliteCount);
 
             ThreadSafeRandom random = new ThreadSafeRandom();
-            foreach ((MathExpressionTree individual, int fitnessRatio) in individualsWithFitnessRatio)
+            individualsWithFitnessRatio.AsParallel().WithDegreeOfParallelism(Environment.ProcessorCount - 1).ForAll(x =>
             {
                 double randomProbability = random.NextDouble();
-                double probabilityToBeSelected = (fitnessRatio - min) / (double)(max - min);
-                if (probabilityToBeSelected > randomProbability && !selectedIndividuals.Contains(individual, new MathExpressionTreeEqualityComparer()))
-                    selectedIndividuals.Add(individual);
-            }
-
-            return selectedIndividuals;
+                double probabilityToBeSelected = (x.fitnessRatio - min) / (double)(max - min);
+                if (probabilityToBeSelected > randomProbability)
+                    lock (selectedIndividuals)
+                        selectedIndividuals.Add(x.individual);
+            });
+            return selectedIndividuals.AsParallel()
+                                      .Distinct(new MathExpressionTreeEqualityComparer())
+                                      .ToList();
         }
 
         public int CalculateFitness(MathExpressionTree individual)

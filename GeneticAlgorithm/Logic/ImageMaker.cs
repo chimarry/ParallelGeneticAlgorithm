@@ -43,7 +43,7 @@ namespace GeneticAlgorithm.Logic
                 session.DrawImage(image);
                 session.DrawText(expression, new System.Numerics.Vector2(textLocation.x, textLocation.y), Colors.Black);
             }
-            StorageFile file = await folder.CreateFileAsync($"GeneticAlgorithm_{jobId}_{jobUnitName}.jpg");
+            StorageFile file = await folder.CreateFileAsync($"GeneticAlgorithm_{jobId}_{jobUnitName}.jpg",CreationCollisionOption.ReplaceExisting);
             using (IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
             {
                 await renderTarget.SaveAsync(fileStream, CanvasBitmapFileFormat.Png, 1f);
