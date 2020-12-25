@@ -17,6 +17,8 @@ namespace GeneticAlgorithm.Logic
         public const int MaxLevelOfParallelismPerJob = 3;
         public const int MaxLevelOfParallelism = 2;
 
+        public ImageMaker ImageMaker { get; set; }
+
         public string Id { get; set; }
 
         public Status CurrentStatus { get; set; }
@@ -65,11 +67,13 @@ namespace GeneticAlgorithm.Logic
         }
 
 
-        public async Task Execute()
+        public async Task Execute(ImageMaker imageMaker)
         {
+            ImageMaker = imageMaker;
             await Callback(Id, Status.Started);
             int numberOfJobUnits = PendingJobUnits.Count;
             jobUnitSemaphore = new SemaphoreSlim(RequestedLevelOfParallelism);
+            List<(string unitName, string expression)> results = new List<(string, string)>();
             List<Task> executionTasks = Enumerable.Range(0, numberOfJobUnits)
                                                   .Select(x => Task.Run(async () =>
                                                                      {
@@ -80,13 +84,17 @@ namespace GeneticAlgorithm.Logic
                                                                          lock (ActiveJobUnits)
                                                                              ActiveJobUnits.Add(jobUnit);
                                                                          await JobUnitCallback(Id, jobUnit, Status.Started);
-                                                                         string result = jobUnit.Execute();
+                                                                         (string, string) result = jobUnit.Execute();
+                                                                         lock (results)
+                                                                             results.Add(result);
                                                                          lock (ActiveJobUnits)
                                                                              ActiveJobUnits.Remove(jobUnit);
                                                                          await JobUnitCallback(Id, jobUnit, Status.Finished);
                                                                          jobUnitSemaphore.Release();
                                                                      })).ToList();
             await Task.WhenAll(executionTasks);
+            results.AsParallel().ForAll(async x => await ImageMaker.SaveResultAsImage(Id, x.unitName, x.expression));
+            // Save as images
             await Callback(Id, Status.Finished);
         }
 
@@ -113,9 +121,6 @@ namespace GeneticAlgorithm.Logic
         {
             private readonly GeneticAlgorithmExecutor geneticAlgorithmExecutor;
 
-
-            public string JobId { get; set; }
-
             public int RequestedNumber { get; set; }
 
             public string Name { get; set; }
@@ -132,7 +137,7 @@ namespace GeneticAlgorithm.Logic
                 geneticAlgorithmExecutor = new GeneticAlgorithmExecutor(geneticAlgorithmConfiguration);
             }
 
-            public string Execute()
+            public (string, string) Execute()
             {
                 /*
                 * Treba da izvrsava geneticki algoritam. Treba se moci pauzirati, i treba moci nastaviti izvrsavanje.
@@ -140,7 +145,8 @@ namespace GeneticAlgorithm.Logic
                 * Treba da azurira UI shodno datim aktivnostima.
                 */
                 MathExpressionTree tree = geneticAlgorithmExecutor.Execute();
-                return tree?.ToString();
+
+                return (Name, tree?.ToString() ?? $"Result {RequestedNumber} was not found");
             }
         }
     }

@@ -12,7 +12,7 @@ namespace GeneticAlgorithm.Logic
 {
     public class ImageMaker
     {
-        private const int width = 400;
+        private const int width = 1600;
         private const int height = 200;
         private const int dpi = 96;
         private static readonly (int x, int y) textLocation = (100, 100);
@@ -20,13 +20,13 @@ namespace GeneticAlgorithm.Logic
 
         private StorageFolder folder;
 
-        public async Task SaveResultAsImage(int geneticAlgorithmId, string expression)
+        public async Task SaveResultAsImage(string jobId, string jobUnitName, string expression)
         {
-            await LoadFolder();
-            await DrawAndSaveImage(geneticAlgorithmId, expression);
+            // await LoadFolder();
+            await DrawAndSaveImage(jobId, jobUnitName, expression);
         }
 
-        private async Task DrawAndSaveImage(int geneticAlgorithmId, string text)
+        private async Task DrawAndSaveImage(string jobId, string jobUnitName, string expression)
         {
             StorageFile inputFile = await Package.Current.InstalledLocation.GetFileAsync(BackgroundImagesSource);
             BitmapDecoder imagedecoder;
@@ -41,16 +41,16 @@ namespace GeneticAlgorithm.Logic
                 session.Clear(Colors.White);
                 CanvasBitmap image = await CanvasBitmap.LoadAsync(device, inputFile.Path, dpi);
                 session.DrawImage(image);
-                session.DrawText(text, new System.Numerics.Vector2(textLocation.x, textLocation.y), Colors.Black);
+                session.DrawText(expression, new System.Numerics.Vector2(textLocation.x, textLocation.y), Colors.Black);
             }
-            StorageFile file = await folder.CreateFileAsync($"GeneticAlgorithm{geneticAlgorithmId}.jpg");
+            StorageFile file = await folder.CreateFileAsync($"GeneticAlgorithm_{jobId}_{jobUnitName}.jpg");
             using (IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
             {
                 await renderTarget.SaveAsync(fileStream, CanvasBitmapFileFormat.Png, 1f);
             }
         }
 
-        private async Task LoadFolder()
+        public async Task LoadFolder()
         {
             if (folder == null)
             {

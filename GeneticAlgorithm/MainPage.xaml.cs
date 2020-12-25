@@ -25,11 +25,16 @@ namespace GeneticAlgorithm
     public sealed partial class MainPage : Page
     {
         private readonly JobManager jobManager;
+        private readonly ImageMaker imageMaker;
 
         public MainPage()
         {
             this.InitializeComponent();
-            jobManager = new JobManager(UpdateJobControl, UpdateJobUnitControl);
+            imageMaker = new ImageMaker();
+            jobManager = new JobManager(UpdateJobControl, UpdateJobUnitControl)
+            {
+                ImageMaker = imageMaker
+            };
         }
 
         private async void LoadJobsButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -60,8 +65,9 @@ namespace GeneticAlgorithm
             // Paralelno pauziraj sve taskove koji se izvrsavaju
         }
 
-        private void StartButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private async void StartButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
+            await imageMaker.LoadFolder();
             foreach (Job job in jobManager.PendingJobs)
                 JobsStackPanel.Children.Add(new JobControl(job));
             jobManager.StartJobs();

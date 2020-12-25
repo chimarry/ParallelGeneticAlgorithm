@@ -18,7 +18,7 @@ namespace GeneticAlgorithm.Logic
 
         public List<Job> ExecutingJobs { get; set; } = new List<Job>();
 
-        private readonly ImageMaker imageMaker = new ImageMaker();
+        public ImageMaker ImageMaker { get; set; }
 
         private readonly SemaphoreSlim jobSemaphore = new SemaphoreSlim(Job.MaxLevelOfParallelism);
 
@@ -72,7 +72,7 @@ namespace GeneticAlgorithm.Logic
                           currentJob = PendingJobs.Dequeue();
                       lock (ExecutingJobs)
                           ExecutingJobs.Add(currentJob);
-                      await currentJob.Execute();
+                      await currentJob.Execute(ImageMaker);
                       lock (ExecutingJobs)
                           ExecutingJobs.Remove(currentJob);
                       jobSemaphore.Release();
