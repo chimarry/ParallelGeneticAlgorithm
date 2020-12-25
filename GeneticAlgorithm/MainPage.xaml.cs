@@ -41,12 +41,18 @@ namespace GeneticAlgorithm
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            if (e.Parameter is FileActivatedEventArgs)
+            if (e.Parameter is FileActivatedEventArgs args)
             {
-                FileActivatedEventArgs args = (FileActivatedEventArgs)e.Parameter;
                 StorageFile file = args.Files[0] as StorageFile;
-                Job job = await jobManager.ParseJobFromFile(file);
-                await AddJob(job);
+                try
+                {
+                    Job job = await jobManager.ParseJobFromFile(file);
+                    await AddJob(job);
+                }
+                catch (XmlException)
+                {
+                    await new ExceptionContentDialog(ExceptionContentDialog.InvalidFormatForJob).ShowAsync();
+                }
             }
         }
 
