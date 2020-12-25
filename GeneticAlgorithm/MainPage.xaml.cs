@@ -3,8 +3,11 @@ using GeneticAlgorithm.Logic;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.Activation;
+using Windows.Storage;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 using static GeneticAlgorithm.Logic.Job;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -31,6 +34,15 @@ namespace GeneticAlgorithm
                 ImageMaker = imageMaker
             };
             StartButton.IsEnabled = PauseButton.IsEnabled = CancelButton.IsEnabled = false;
+        }
+
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            FileActivatedEventArgs args = (FileActivatedEventArgs)e.Parameter;
+            StorageFile file = args.Files[0] as StorageFile;
+            Job job = await jobManager.ParseJobFromFile(file);
+            await AddJob(job);
         }
 
         public async Task AddJob(Job job)

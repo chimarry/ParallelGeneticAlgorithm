@@ -53,11 +53,18 @@ namespace GeneticAlgorithm.Logic
             IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
             foreach (StorageFile file in files)
             {
-                using (Stream stream = await file.OpenStreamForReadAsync())
-                {
-                    XDocument jobConfiguration = XDocument.Load(stream);
-                    AddJob(Job.InitializeFromXml(jobConfiguration, UpdateJobUI, UpdateJobUnitUI));
-                }
+                Job job = await ParseJobFromFile(file);
+                AddJob(job);
+            }
+        }
+
+        public async Task<Job> ParseJobFromFile(StorageFile file)
+        {
+            using (Stream stream = await file.OpenStreamForReadAsync())
+            {
+                XDocument jobConfiguration = XDocument.Load(stream);
+                Job job = Job.InitializeFromXml(jobConfiguration, UpdateJobUI, UpdateJobUnitUI);
+                return job;
             }
         }
 
