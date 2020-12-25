@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GeneticAlgorithm.Util;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -25,6 +26,8 @@ namespace GeneticAlgorithm.Logic
         private readonly JobCallback callback;
 
         private readonly JobUnitCallback jobUnitCallback;
+
+        public bool Cancelled { get; set; }
 
         public JobManager(JobCallback callback, JobUnitCallback jobUnitCallback)
         {
@@ -68,14 +71,18 @@ namespace GeneticAlgorithm.Logic
                   {
                       await jobSemaphore.WaitAsync();
                       Job currentJob;
-                      lock (PendingJobs)
-                          currentJob = PendingJobs.Dequeue();
-                      lock (ExecutingJobs)
-                          ExecutingJobs.Add(currentJob);
-                      await currentJob.Execute(ImageMaker);
-                      lock (ExecutingJobs)
-                          ExecutingJobs.Remove(currentJob);
-                      jobSemaphore.Release();
+                      if (!Cancelled)
+                      {
+                          lock (PendingJobs)
+                              currentJob = PendingJobs.Dequeue();
+                          lock (ExecutingJobs)
+                              ExecutingJobs.Add(currentJob);
+                          await currentJob.Execute(ImageMaker);
+                          if (!Cancelled)
+                              lock (ExecutingJobs)
+                                  ExecutingJobs.Remove(currentJob);
+                          jobSemaphore.Release();
+                      }
                   });
         }
 
@@ -84,9 +91,15 @@ namespace GeneticAlgorithm.Logic
             throw new NotImplementedException();
         }
 
-        public Task CancelJobs()
+        public async Task CancelJobs()
         {
-            throw new NotImplementedException();
+            Cancelled = true;
+            foreach (Job job in ExecutingJobs)
+                await job.Cancel();
+            foreach (Job job in PendingJobs)
+                await job.Cancel();
+            ExecutingJobs.Clear();
+            PendingJobs.Clear();
         }
 
         public Task ResumeJobs()

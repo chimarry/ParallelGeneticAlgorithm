@@ -6,6 +6,6 @@ namespace GeneticAlgorithm.Util
     public static class IEnumerableExtensionMethods
     {
         public static bool NotEmpty(this IEnumerable<object> list)
-            => list.Count() == 0;
+            => list.Count() != 0;
     }
 }

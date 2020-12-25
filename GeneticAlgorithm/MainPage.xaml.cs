@@ -55,9 +55,9 @@ namespace GeneticAlgorithm
             await contentDialog.ShowAsync();
         }
 
-        private void CancelButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private async void CancelButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            // Otkazi sve taskove
+            await jobManager.CancelJobs();
         }
 
         private void PauseButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)

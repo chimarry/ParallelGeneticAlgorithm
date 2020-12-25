@@ -3,6 +3,7 @@ using GeneticAlgorithm.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace GeneticAlgorithm
 {
@@ -11,10 +12,12 @@ namespace GeneticAlgorithm
         private readonly StohasticGenerator stohasticGenerator;
         private readonly PopulationSelector populationSelector;
         private readonly GeneticAlgorithmConfiguration configuration;
+        private readonly CancellationToken cancellationToken;
 
-        public GeneticAlgorithmExecutor(GeneticAlgorithmConfiguration configuration)
+        public GeneticAlgorithmExecutor(GeneticAlgorithmConfiguration configuration, CancellationToken cancellationToken)
         {
             this.configuration = configuration;
+            this.cancellationToken = cancellationToken;
             stohasticGenerator = new StohasticGenerator(configuration.Operands);
             populationSelector = new PopulationSelector(configuration.Result, configuration.EliteCount, stohasticGenerator);
         }
@@ -24,6 +27,8 @@ namespace GeneticAlgorithm
             List<MathExpressionTree> population = populationSelector.GeneratePopulation(configuration.PopulationSize);
             for (int i = 0; i < configuration.IterationCount; ++i)
             {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
                 List<MathExpressionTree> selectedIndividuals = populationSelector.SelectFittestIndividuals(population);
                 List<MathExpressionTree> newPopulation = Evolve(selectedIndividuals);
                 if (newPopulation.Any(x => x.Root.GetValue() == configuration.Result))

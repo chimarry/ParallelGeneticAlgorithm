@@ -1,4 +1,5 @@
 ﻿using GeneticAlgorithm.ExpressionTree;
+using GeneticAlgorithm.Util;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -33,13 +34,15 @@ namespace GeneticAlgorithm.Logic
 
         public JobUnitUICallback JobUnitCallback { get; set; }
 
-        public bool IsFinished { get; set; }
+        public bool IsFinished { get => CurrentStatus == Status.Finished; }
 
         public bool IsPaused { get; set; }
 
-        public bool IsStopped { get; set; }
+        public bool IsCancelled { get => CurrentStatus == Status.Cancelled; }
 
         public SemaphoreSlim JobSemaphor { get; set; }
+
+        private CancellationTokenSource cancellationTokenSource;
 
         private SemaphoreSlim jobUnitSemaphore;
 
@@ -51,6 +54,8 @@ namespace GeneticAlgorithm.Logic
             Callback = jobUICallback;
             JobUnitCallback = jobUnitUICallback;
             RequestedLevelOfParallelism = levelOfParallelism < MaxLevelOfParallelismPerJob ? levelOfParallelism : MaxLevelOfParallelismPerJob;
+            jobUnitSemaphore = new SemaphoreSlim(RequestedLevelOfParallelism);
+            cancellationTokenSource = new CancellationTokenSource();
             CurrentStatus = Status.Pending;
         }
 
@@ -69,33 +74,47 @@ namespace GeneticAlgorithm.Logic
 
         public async Task Execute(ImageMaker imageMaker)
         {
+            if (IsCancelled)
+                return;
+            CurrentStatus = Status.Started;
+            await Callback(Id, CurrentStatus);
+
             ImageMaker = imageMaker;
-            await Callback(Id, Status.Started);
+
             int numberOfJobUnits = PendingJobUnits.Count;
-            jobUnitSemaphore = new SemaphoreSlim(RequestedLevelOfParallelism);
             List<(string unitName, string expression)> results = new List<(string, string)>();
             List<Task> executionTasks = Enumerable.Range(0, numberOfJobUnits)
                                                   .Select(x => Task.Run(async () =>
                                                                      {
                                                                          await jobUnitSemaphore.WaitAsync();
                                                                          JobUnit jobUnit;
-                                                                         lock (PendingJobUnits)
-                                                                             jobUnit = PendingJobUnits.Dequeue();
-                                                                         lock (ActiveJobUnits)
-                                                                             ActiveJobUnits.Add(jobUnit);
-                                                                         await JobUnitCallback(Id, jobUnit, Status.Started);
-                                                                         (string, string) result = jobUnit.Execute();
-                                                                         lock (results)
-                                                                             results.Add(result);
-                                                                         lock (ActiveJobUnits)
-                                                                             ActiveJobUnits.Remove(jobUnit);
-                                                                         await JobUnitCallback(Id, jobUnit, Status.Finished);
-                                                                         jobUnitSemaphore.Release();
+                                                                         if (!IsCancelled)
+                                                                         {
+                                                                             lock (PendingJobUnits)
+                                                                                 jobUnit = PendingJobUnits.Dequeue();
+                                                                             lock (ActiveJobUnits)
+                                                                                 ActiveJobUnits.Add(jobUnit);
+                                                                             await JobUnitCallback(Id, jobUnit, CurrentStatus);
+                                                                             (string, string) result = jobUnit.Execute(cancellationTokenSource);
+                                                                             if (!IsCancelled)
+                                                                             {
+                                                                                 lock (ActiveJobUnits)
+                                                                                     ActiveJobUnits.Remove(jobUnit);
+                                                                                 lock (results)
+                                                                                     results.Add(result);
+                                                                                 await JobUnitCallback(Id, jobUnit, Status.Finished);
+                                                                             }
+                                                                             jobUnitSemaphore.Release();
+                                                                         }
                                                                      })).ToList();
             await Task.WhenAll(executionTasks);
             results.AsParallel().ForAll(async x => await ImageMaker.SaveResultAsImage(Id, x.unitName, x.expression));
             // Save as images
-            await Callback(Id, Status.Finished);
+            if (!IsCancelled)
+            {
+                CurrentStatus = Status.Finished;
+                await Callback(Id, CurrentStatus);
+            }
         }
 
         public async Task Pause()
@@ -108,9 +127,14 @@ namespace GeneticAlgorithm.Logic
 
         }
 
-        public async Task Stop()
+        public async Task Cancel()
         {
+            CurrentStatus = Status.Cancelled;
+            cancellationTokenSource.Cancel();
 
+            await Callback(Id, Status.Cancelled);
+            ActiveJobUnits.AsParallel().ForAll(async jobUnit => await JobUnitCallback(Id, jobUnit, Status.Cancelled));
+            PendingJobUnits.AsParallel().ForAll(async jobUnit => await JobUnitCallback(Id, jobUnit, Status.Cancelled));
         }
 
         public async Task Finish()
@@ -119,7 +143,8 @@ namespace GeneticAlgorithm.Logic
         }
         public class JobUnit
         {
-            private readonly GeneticAlgorithmExecutor geneticAlgorithmExecutor;
+            private GeneticAlgorithmExecutor geneticAlgorithmExecutor;
+            public CancellationTokenSource CancellationTokenSource { get; set; }
 
             public int RequestedNumber { get; set; }
 
@@ -129,23 +154,23 @@ namespace GeneticAlgorithm.Logic
             {
                 RequestedNumber = int.Parse(number);
                 Name = name;
+            }
+
+            public (string, string) Execute(CancellationTokenSource cancellationTokenSource)
+            {
+                this.CancellationTokenSource = cancellationTokenSource;
                 ThreadSafeRandom threadSafeRandom = new ThreadSafeRandom();
                 GeneticAlgorithmConfiguration geneticAlgorithmConfiguration = new GeneticAlgorithmConfiguration(RequestedNumber)
                 {
                     Operands = new int[] { 10, 1, 28, 3, 14, 80 }
                 };
-                geneticAlgorithmExecutor = new GeneticAlgorithmExecutor(geneticAlgorithmConfiguration);
-            }
-
-            public (string, string) Execute()
-            {
+                geneticAlgorithmExecutor = new GeneticAlgorithmExecutor(geneticAlgorithmConfiguration, this.CancellationTokenSource.Token);
                 /*
                 * Treba da izvrsava geneticki algoritam. Treba se moci pauzirati, i treba moci nastaviti izvrsavanje.
                 * Treba da obavijesti kada je zavrsio sa izvrsavanjem, i da rezultat sacuva kao sliku.
                 * Treba da azurira UI shodno datim aktivnostima.
                 */
                 MathExpressionTree tree = geneticAlgorithmExecutor.Execute();
-
                 return (Name, tree?.ToString() ?? $"Result {RequestedNumber} was not found");
             }
         }
