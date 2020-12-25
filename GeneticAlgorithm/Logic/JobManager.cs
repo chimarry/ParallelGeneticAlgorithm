@@ -17,6 +17,8 @@ namespace GeneticAlgorithm.Logic
 
         public Queue<Job> PendingJobs { get; set; } = new Queue<Job>();
 
+        public List<Job> ScheduledJobs { get; set; } = new List<Job>();
+
         public List<Job> ExecutingJobs { get; set; } = new List<Job>();
 
         public ImageMaker ImageMaker { get; set; }
@@ -70,19 +72,26 @@ namespace GeneticAlgorithm.Logic
 
         public async Task StartJob()
         {
-            await jobSemaphore.WaitAsync();
             Job currentJob;
             if (PendingJobs.NotEmpty() && !Cancelled)
             {
                 lock (PendingJobs)
                     currentJob = PendingJobs.Dequeue();
-                lock (ExecutingJobs)
-                    ExecutingJobs.Add(currentJob);
-                await currentJob.Execute(ImageMaker);
-                if (!Cancelled)
+                lock (ScheduledJobs)
+                    ScheduledJobs.Add(currentJob);
+                await jobSemaphore.WaitAsync();
+                if (ScheduledJobs.NotEmpty() && !Cancelled)
+                {
+                    lock (ScheduledJobs)
+                        ScheduledJobs.Remove(currentJob);
                     lock (ExecutingJobs)
-                        ExecutingJobs.Remove(currentJob);
-                jobSemaphore.Release();
+                        ExecutingJobs.Add(currentJob);
+                    await currentJob.Execute(ImageMaker);
+                    if (!Cancelled)
+                        lock (ExecutingJobs)
+                            ExecutingJobs.Remove(currentJob);
+                    jobSemaphore.Release();
+                }
             }
         }
 
@@ -103,7 +112,7 @@ namespace GeneticAlgorithm.Logic
             Cancelled = true;
             foreach (Job job in ExecutingJobs)
                 await job.Cancel();
-            foreach (Job job in PendingJobs)
+            foreach (Job job in ScheduledJobs)
                 await job.Cancel();
         }
 

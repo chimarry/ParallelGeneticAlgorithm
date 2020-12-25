@@ -1,5 +1,6 @@
 ﻿using GeneticAlgorithm.Controls;
 using GeneticAlgorithm.Logic;
+using GeneticAlgorithm.Util;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -75,7 +76,14 @@ namespace GeneticAlgorithm
             jobManager.PendingJobs
                       .ToList()
                       .ForEach(job => AddToList(job));
-            StartButton.IsEnabled = true;
+            if (jobManager.ScheduledJobs.NotEmpty())
+            {
+                foreach (Job job in jobManager.PendingJobs)
+                    JobsStackPanel.Children.Add(new JobControl(job));
+                jobManager.StartJobs();
+            }
+            else
+                StartButton.IsEnabled = true;
         }
 
         private async void AddJobButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -89,6 +97,8 @@ namespace GeneticAlgorithm
             StartButton.IsEnabled = false;
             PauseButton.IsEnabled = false;
             CancelButton.IsEnabled = false;
+            LoadJobsButton.IsEnabled = false;
+            AddJobButton.IsEnabled = false;
             await jobManager.CancelJobs();
         }
 
