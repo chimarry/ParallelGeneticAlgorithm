@@ -39,10 +39,13 @@ namespace GeneticAlgorithm
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            FileActivatedEventArgs args = (FileActivatedEventArgs)e.Parameter;
-            StorageFile file = args.Files[0] as StorageFile;
-            Job job = await jobManager.ParseJobFromFile(file);
-            await AddJob(job);
+            if (e.Parameter is FileActivatedEventArgs)
+            {
+                FileActivatedEventArgs args = (FileActivatedEventArgs)e.Parameter;
+                StorageFile file = args.Files[0] as StorageFile;
+                Job job = await jobManager.ParseJobFromFile(file);
+                await AddJob(job);
+            }
         }
 
         public async Task AddJob(Job job)
@@ -62,11 +65,8 @@ namespace GeneticAlgorithm
 
         private void AddToList(Job job)
         {
-            if (!PendingJobList.Items.Select(x => x as TextBlock).Any(x => x.Text == job.Id))
-                PendingJobList.Items.Add(new TextBlock()
-                {
-                    Text = job.Id
-                });
+            if (!PendingJobList.Items.Select(x => x as JobListElement).Any(x => x.Equals(job.Id)))
+                PendingJobList.Items.Add(new JobListElement(job.Name, job.Id));
         }
 
         private async void LoadJobsButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -129,9 +129,12 @@ namespace GeneticAlgorithm
                      lock (PendingJobList)
                          PendingJobList.Items
                                        .Remove(PendingJobList.Items
-                                                             .Select(x => x as TextBlock)
-                                                             .First(x => x.Text == identifier));
-                 await ((JobControl)JobsStackPanel.Children.First(x => x.GetHashCode() == identifier.GetHashCode())).UpdateStatus(jobStatus);
+                                                             .Select(x => x as JobListElement)
+                                                             .First(x => x.Equals(identifier)));
+                 await JobsStackPanel.Children
+                                      .Select(x => x as JobControl)
+                                      .First(x => x.GetHashCode() == identifier.GetHashCode())
+                                      .UpdateStatus(jobStatus);
              });
         }
 
@@ -139,7 +142,9 @@ namespace GeneticAlgorithm
         {
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
             {
-                await ((JobControl)JobsStackPanel.Children.First(x => x.GetHashCode() == identifier.GetHashCode())).UpdateJobUnit(jobUnit, jobStatus);
+                await JobsStackPanel.Children
+                                      .Select(x => x as JobControl)
+                                      .First(x => x.GetHashCode() == identifier.GetHashCode()).UpdateJobUnit(jobUnit, jobStatus);
             });
         }
     }

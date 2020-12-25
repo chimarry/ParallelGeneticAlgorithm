@@ -1,5 +1,6 @@
 ﻿using GeneticAlgorithm.ExpressionTree;
 using GeneticAlgorithm.Util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,6 +20,8 @@ namespace GeneticAlgorithm.Logic
         public const int MaxLevelOfParallelism = 2;
 
         public ImageMaker ImageMaker { get; set; }
+
+        public string Name { get; set; }
 
         public string Id { get; set; }
 
@@ -50,7 +53,8 @@ namespace GeneticAlgorithm.Logic
         {
             foreach (JobUnit unit in units)
                 PendingJobUnits.Enqueue(unit);
-            Id = identifier;
+            Name = identifier;
+            Id = Guid.NewGuid().ToString();
             Callback = jobUICallback;
             JobUnitCallback = jobUnitUICallback;
             RequestedLevelOfParallelism = levelOfParallelism < MaxLevelOfParallelismPerJob ? levelOfParallelism : MaxLevelOfParallelismPerJob;
@@ -87,7 +91,7 @@ namespace GeneticAlgorithm.Logic
                                                                      {
                                                                          await jobUnitSemaphore.WaitAsync();
                                                                          JobUnit jobUnit;
-                                                                         if (PendingJobUnits.NotEmpty())
+                                                                         if (PendingJobUnits.NotEmpty() && !IsCancelled)
                                                                          {
                                                                              lock (PendingJobUnits)
                                                                                  jobUnit = PendingJobUnits.Dequeue();
@@ -153,9 +157,6 @@ namespace GeneticAlgorithm.Logic
             await Callback(Id, Status.Cancelled);
             ActiveJobUnits.AsParallel().ForAll(async jobUnit => await JobUnitCallback(Id, jobUnit, Status.Cancelled));
             PendingJobUnits.AsParallel().ForAll(async jobUnit => await JobUnitCallback(Id, jobUnit, Status.Cancelled));
-
-            ActiveJobUnits.Clear();
-            PendingJobUnits.Clear();
         }
 
         public class JobUnit

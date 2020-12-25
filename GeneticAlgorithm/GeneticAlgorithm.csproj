@@ -122,6 +122,9 @@
     <Compile Include="Controls\JobControl.xaml.cs">
       <DependentUpon>JobControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\JobListElement.xaml.cs">
+      <DependentUpon>JobListElement.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\JobUnitControl.xaml.cs">
       <DependentUpon>JobUnitControl.xaml</DependentUpon>
     </Compile>
@@ -205,6 +208,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="Controls\JobControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\JobListElement.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

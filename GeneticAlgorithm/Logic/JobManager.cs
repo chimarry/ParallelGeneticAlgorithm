@@ -72,7 +72,7 @@ namespace GeneticAlgorithm.Logic
         {
             await jobSemaphore.WaitAsync();
             Job currentJob;
-            if (PendingJobs.NotEmpty())
+            if (PendingJobs.NotEmpty() && !Cancelled)
             {
                 lock (PendingJobs)
                     currentJob = PendingJobs.Dequeue();
@@ -89,24 +89,7 @@ namespace GeneticAlgorithm.Logic
         public void StartJobs()
         {
             int numberOfJobs = PendingJobs.Count;
-            Parallel.For(0, numberOfJobs, async (i) =>
-                  {
-                      await StartJob();
-                      /* await jobSemaphore.WaitAsync();
-                       Job currentJob;
-                       if (PendingJobs.NotEmpty())
-                       {
-                           lock (PendingJobs)
-                               currentJob = PendingJobs.Dequeue();
-                           lock (ExecutingJobs)
-                               ExecutingJobs.Add(currentJob);
-                           await currentJob.Execute(ImageMaker);
-                           if (!Cancelled)
-                               lock (ExecutingJobs)
-                                   ExecutingJobs.Remove(currentJob);
-                           jobSemaphore.Release();
-                  }*/
-                  });
+            Parallel.For(0, numberOfJobs, async (i) => await StartJob());
         }
 
         public async Task PauseJobs()
@@ -122,8 +105,6 @@ namespace GeneticAlgorithm.Logic
                 await job.Cancel();
             foreach (Job job in PendingJobs)
                 await job.Cancel();
-            ExecutingJobs.Clear();
-            PendingJobs.Clear();
         }
 
         public async Task ResumeJobs()
