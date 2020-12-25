@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace GeneticAlgorithm
 {
@@ -13,22 +14,26 @@ namespace GeneticAlgorithm
         private readonly PopulationSelector populationSelector;
         private readonly GeneticAlgorithmConfiguration configuration;
         private readonly CancellationToken cancellationToken;
+        private readonly SemaphoreSlim pauseSemaphore;
 
-        public GeneticAlgorithmExecutor(GeneticAlgorithmConfiguration configuration, CancellationToken cancellationToken)
+        public GeneticAlgorithmExecutor(GeneticAlgorithmConfiguration configuration, CancellationToken cancellationToken, SemaphoreSlim pauseSemaphore)
         {
             this.configuration = configuration;
             this.cancellationToken = cancellationToken;
+            this.pauseSemaphore = pauseSemaphore;
             stohasticGenerator = new StohasticGenerator(configuration.Operands);
             populationSelector = new PopulationSelector(configuration.Result, configuration.EliteCount, stohasticGenerator);
         }
 
-        public MathExpressionTree Execute()
+        public async Task<MathExpressionTree> Execute()
         {
             List<MathExpressionTree> population = populationSelector.GeneratePopulation(configuration.PopulationSize);
             for (int i = 0; i < configuration.IterationCount; ++i)
             {
                 if (cancellationToken.IsCancellationRequested)
                     break;
+                await pauseSemaphore.WaitAsync();
+                pauseSemaphore.Release();
                 List<MathExpressionTree> selectedIndividuals = populationSelector.SelectFittestIndividuals(population);
                 List<MathExpressionTree> newPopulation = Evolve(selectedIndividuals);
                 if (newPopulation.Any(x => x.Root.GetValue() == configuration.Result))

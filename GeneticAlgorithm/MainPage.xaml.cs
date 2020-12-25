@@ -27,6 +27,8 @@ namespace GeneticAlgorithm
         private readonly JobManager jobManager;
         private readonly ImageMaker imageMaker;
 
+        private bool isPaused = false;
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -35,6 +37,7 @@ namespace GeneticAlgorithm
             {
                 ImageMaker = imageMaker
             };
+            StartButton.IsEnabled = PauseButton.IsEnabled = CancelButton.IsEnabled = false;
         }
 
         private async void LoadJobsButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -47,6 +50,7 @@ namespace GeneticAlgorithm
                       {
                           Text = job
                       }));
+            StartButton.IsEnabled = true;
         }
 
         private async void AddJobButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -57,20 +61,38 @@ namespace GeneticAlgorithm
 
         private async void CancelButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
+            StartButton.IsEnabled = false;
+            PauseButton.IsEnabled = false;
+            CancelButton.IsEnabled = false;
             await jobManager.CancelJobs();
         }
 
-        private void PauseButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private async void PauseButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            // Paralelno pauziraj sve taskove koji se izvrsavaju
+            CancelButton.IsEnabled = false;
+            PauseButton.IsEnabled = false;
+            isPaused = true;
+            await jobManager.PauseJobs();
+            StartButton.IsEnabled = true;
         }
 
         private async void StartButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            await imageMaker.LoadFolder();
-            foreach (Job job in jobManager.PendingJobs)
-                JobsStackPanel.Children.Add(new JobControl(job));
-            jobManager.StartJobs();
+            StartButton.IsEnabled = false;
+            if (isPaused)
+            {
+                isPaused = false;
+                await jobManager.ResumeJobs();
+            }
+            else
+            {
+                await imageMaker.LoadFolder();
+                foreach (Job job in jobManager.PendingJobs)
+                    JobsStackPanel.Children.Add(new JobControl(job));
+                jobManager.StartJobs();
+            }
+            PauseButton.IsEnabled = true;
+            CancelButton.IsEnabled = true;
         }
 
         public async Task UpdateJobControl(string identifier, Status jobStatus)
