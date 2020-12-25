@@ -168,6 +168,7 @@
     <Content Include="Assets\GaIcon.targetsize-256.png" />
     <Content Include="Assets\GaIcon.targetsize-32.png" />
     <Content Include="Assets\GaIcon.targetsize-48.png" />
+    <Content Include="Assets\GeneticAlgorithm.png" />
     <Content Include="Assets\LargeTile.scale-100.png" />
     <Content Include="Assets\LargeTile.scale-125.png" />
     <Content Include="Assets\LargeTile.scale-150.png" />

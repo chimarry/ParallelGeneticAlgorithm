@@ -43,6 +43,19 @@
         <uap:InitialRotationPreference>
           <uap:Rotation Preference="landscape"/></uap:InitialRotationPreference>
       </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name=".ga">
+            <uap:SupportedFileTypes>
+              <uap:FileType>.ga</uap:FileType>
+            </uap:SupportedFileTypes>
+            <uap:DisplayName>Genetic Algorithm</uap:DisplayName>
+            <uap:Logo>Assets\GeneticAlgorithm.png</uap:Logo>
+            <uap:EditFlags OpenIsSafe="true"/>
+            <uap:InfoTip>Calculate expressions in parallel using genetic algorithm.</uap:InfoTip>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+      </Extensions>
     </Application>
   </Applications>
 </Package>
